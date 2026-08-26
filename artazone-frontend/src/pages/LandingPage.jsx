@@ -134,7 +134,7 @@ export default function LandingPage() {
         `}</style>
         
         <p className="animate-scroll font-display font-700 text-xs md:text-sm tracking-widest cursor-default">
-          🔥 PROMO KEMERDEKAAN — DISKON 17% SEMUA GAME &nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;&nbsp; VOUCHER CASHBACK 10RB UNTUK PENGGUNA BARU &nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;&nbsp; TOP UP MALAM HARI EKSTRA BONUS
+          ⚡ PROSES TRANSAKSI OTOMATIS HANYA DALAM HITUNGAN DETIK &nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;&nbsp; LAYANAN TOP UP GAME & PPOB BUKA 24 JAM NONSTOP &nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;&nbsp; TRANSAKSI AMAN, CEPAT, DAN TERPERCAYA DI ARTA ZONE
         </p>
       </div>
 
