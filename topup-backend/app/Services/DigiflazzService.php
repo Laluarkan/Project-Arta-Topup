@@ -90,7 +90,8 @@ class DigiflazzService
         ini_set('memory_limit', '-1');
 
         $config = $this->getApiConfig();
-        $sign = md5($config['username'] . $config['key'] . "depo");
+        // BUG FIX: Mengubah "depo" menjadi "pricelist" sesuai dokumentasi resmi
+        $sign = md5($config['username'] . $config['key'] . "pricelist");
 
         $response = Http::timeout(120)->post('https://api.digiflazz.com/v1/price-list', [
             'cmd' => 'prepaid',
@@ -100,11 +101,29 @@ class DigiflazzService
 
         if (!$response->successful()) {
             $errorData = $response->json();
-            $errorMsg = $errorData['data']['message'] ?? $response->body();
+            $errorMsg = $response->body();
+            
+            if (is_array($errorData)) {
+                if (isset($errorData['data']) && is_string($errorData['data'])) {
+                    $errorMsg = $errorData['data'];
+                } elseif (isset($errorData['data']['message'])) {
+                    $errorMsg = $errorData['data']['message'];
+                } else {
+                    $errorMsg = json_encode($errorData);
+                }
+            }
+                
             return ['status' => false, 'message' => 'API Error: ' . $errorMsg];
         }
 
         $data = $response->json('data');
+
+        if (isset($data['rc']) || (isset($data['message']) && !isset($data[0]['buyer_sku_code']))) {
+            return [
+                'status' => false, 
+                'message' => 'Digiflazz Menolak: ' . ($data['message'] ?? json_encode($data))
+            ];
+        }
 
         if (!$data || !is_array($data)) {
             return ['status' => false, 'message' => 'Tidak ada data produk yang diterima'];
@@ -121,6 +140,10 @@ class DigiflazzService
         
         try {
             foreach ($data as $item) {
+                if (!isset($item['brand']) || !isset($item['buyer_sku_code'])) {
+                    continue;
+                }
+
                 $category = Category::firstOrCreate(
                     ['name' => $item['brand']],
                     ['is_active' => true]
@@ -153,7 +176,7 @@ class DigiflazzService
             return ['status' => false, 'message' => 'Gagal sinkronisasi karena masalah database.'];
         }
 
-        return ['status' => true, 'message' => "Berhasil sinkronisasi $syncedCount produk"];
+        return ['status' => true, 'message' => "Berhasil sinkronisasi $syncedCount produk asli"];
     }
 
     public function topup($buyerSkuCode, $customerNo, $refId)
@@ -179,7 +202,18 @@ class DigiflazzService
 
         if (!$response->successful()) {
             $errorData = $response->json();
-            $errorMsg = $errorData['data']['message'] ?? 'Gagal terhubung ke API Transaksi';
+            $errorMsg = $response->body();
+            
+            if (is_array($errorData)) {
+                if (isset($errorData['data']) && is_string($errorData['data'])) {
+                    $errorMsg = $errorData['data'];
+                } elseif (isset($errorData['data']['message'])) {
+                    $errorMsg = $errorData['data']['message'];
+                } else {
+                    $errorMsg = json_encode($errorData);
+                }
+            }
+                
             return [
                 'success' => false,
                 'message' => 'API Error: ' . $errorMsg,
