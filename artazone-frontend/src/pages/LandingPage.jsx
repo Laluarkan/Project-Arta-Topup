@@ -16,7 +16,7 @@ export default function LandingPage() {
   ];
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/categories')
+    axios.get('https://artazone-api.onrender.com/api/categories')
       .then(res => {
         if (res.data.status === 'success') {
           const activeCategories = res.data.data.filter(c => c.is_active);
@@ -25,7 +25,7 @@ export default function LandingPage() {
       })
       .catch(err => console.error("Gagal menarik data kategori:", err));
 
-    axios.get('http://127.0.0.1:8000/api/trending-games')
+    axios.get('https://artazone-api.onrender.com/api/trending-games')
       .then(res => {
         if (res.data.status === 'success') {
           setTrendingGames(res.data.data);

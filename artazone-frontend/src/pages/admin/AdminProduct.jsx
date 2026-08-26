@@ -18,7 +18,7 @@ export default function AdminProduct() {
   const token = localStorage.getItem('token');
 
   const fetchProducts = () => {
-    axios.get('http://127.0.0.1:8000/api/admin/products', {
+    axios.get('https://artazone-api.onrender.com/api/admin/products', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setProducts(res.data.data))
@@ -38,7 +38,7 @@ export default function AdminProduct() {
     if (!window.confirm('Proses ini akan menarik data harga modal terbaru dari Digiflazz dan MENERAPKAN MARGIN yang sudah Anda atur. Lanjutkan?')) return;
     setIsSyncing(true);
     try {
-      const res = await axios.post('http://127.0.0.1:8000/api/admin/sync-products', {}, {
+      const res = await axios.post('https://artazone-api.onrender.com/api/admin/sync-products', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('✅ ' + res.data.message);
@@ -53,7 +53,7 @@ export default function AdminProduct() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://127.0.0.1:8000/api/admin/products/${editingProduct.id}`, editForm, {
+      await axios.put(`https://artazone-api.onrender.com/api/admin/products/${editingProduct.id}`, editForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('✅ Produk berhasil diperbarui (Edit Manual)');

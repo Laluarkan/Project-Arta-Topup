@@ -18,7 +18,7 @@ export default function AdminCategory() {
   const token = localStorage.getItem('token');
 
   const fetchCategories = () => {
-    axios.get('http://127.0.0.1:8000/api/admin/categories', {
+    axios.get('https://artazone-api.onrender.com/api/admin/categories', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setCategories(res.data.data))
@@ -39,7 +39,7 @@ export default function AdminCategory() {
     
     setIsFetchingLogos(true);
     try {
-      const res = await axios.post('http://127.0.0.1:8000/api/admin/categories/auto-fetch-logos', {}, {
+      const res = await axios.post('https://artazone-api.onrender.com/api/admin/categories/auto-fetch-logos', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert(res.data.message);
@@ -54,7 +54,7 @@ export default function AdminCategory() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://127.0.0.1:8000/api/admin/categories/${editingCategory.id}`, editForm, {
+      await axios.put(`https://artazone-api.onrender.com/api/admin/categories/${editingCategory.id}`, editForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Data kategori berhasil diperbarui');

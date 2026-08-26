@@ -14,7 +14,7 @@ export default function StatusPage() {
 
   useEffect(() => {
     const fetchStatus = () => {
-      axios.get(`http://127.0.0.1:8000/api/transactions/${id}`)
+      axios.get(`https://artazone-api.onrender.com/api/transactions/${id}`)
         .then(res => {
           setTransaction(res.data.data);
           setIsLoading(false);

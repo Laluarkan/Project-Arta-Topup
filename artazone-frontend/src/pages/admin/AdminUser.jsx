@@ -16,7 +16,7 @@ export default function AdminUser() {
   const token = localStorage.getItem('token');
 
   const fetchUsers = () => {
-    axios.get('http://127.0.0.1:8000/api/admin/users', {
+    axios.get('https://artazone-api.onrender.com/api/admin/users', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setUsers(res.data.data))
@@ -35,7 +35,7 @@ export default function AdminUser() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://127.0.0.1:8000/api/admin/users/${editingUser.id}`, editForm, {
+      await axios.put(`https://artazone-api.onrender.com/api/admin/users/${editingUser.id}`, editForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Data user berhasil diperbarui');

@@ -21,7 +21,7 @@ export default function TicketPage() {
 
   const fetchTickets = async () => {
     try {
-      const res = await axios.get('http://127.0.0.1:8000/api/user/tickets', {
+      const res = await axios.get('https://artazone-api.onrender.com/api/user/tickets', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTickets(res.data.data);
@@ -35,7 +35,7 @@ export default function TicketPage() {
       navigate('/auth');
       return;
     }
-    axios.get('http://127.0.0.1:8000/api/user', { headers: { Authorization: `Bearer ${token}` } })
+    axios.get('https://artazone-api.onrender.com/api/user', { headers: { Authorization: `Bearer ${token}` } })
       .then(res => {
         setUser(res.data);
         fetchTickets();
@@ -51,7 +51,7 @@ export default function TicketPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await axios.post('http://127.0.0.1:8000/api/user/tickets', { subject, message }, {
+      await axios.post('https://artazone-api.onrender.com/api/user/tickets', { subject, message }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSubject('');

@@ -14,7 +14,7 @@ export default function AdminTransaction() {
   const token = localStorage.getItem('token');
 
   const fetchTransactions = () => {
-    axios.get('http://127.0.0.1:8000/api/admin/transactions', {
+    axios.get('https://artazone-api.onrender.com/api/admin/transactions', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setTransactions(res.data.data))
@@ -34,7 +34,7 @@ export default function AdminTransaction() {
     if (!window.confirm(`PERINGATAN: Memaksa ubah status transaksi menjadi ${newStatus}? (Jika FAILED, saldo pembeli akan otomatis di-refund).`)) return;
     
     try {
-      await axios.put(`http://127.0.0.1:8000/api/admin/transactions/${id}/status`, 
+      await axios.put(`https://artazone-api.onrender.com/api/admin/transactions/${id}/status`, 
         { status: newStatus }, 
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -51,7 +51,7 @@ export default function AdminTransaction() {
     
     try {
       alert('Sedang memproses ulang ke Digiflazz...');
-      await axios.post(`http://127.0.0.1:8000/api/admin/transactions/${id}/retry`, 
+      await axios.post(`https://artazone-api.onrender.com/api/admin/transactions/${id}/retry`, 
         {}, 
         { headers: { Authorization: `Bearer ${token}` } }
       );

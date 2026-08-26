@@ -14,7 +14,7 @@ export default function AdminSettings() {
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/admin/settings', {
+    axios.get('https://artazone-api.onrender.com/api/admin/settings', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => {
@@ -43,7 +43,7 @@ export default function AdminSettings() {
     };
 
     try {
-      await axios.post('http://127.0.0.1:8000/api/admin/settings', payload, {
+      await axios.post('https://artazone-api.onrender.com/api/admin/settings', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Pengaturan sistem berhasil disimpan!');

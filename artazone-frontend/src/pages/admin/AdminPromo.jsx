@@ -22,7 +22,7 @@ export default function AdminPromo() {
   const token = localStorage.getItem('token');
 
   const fetchPromos = () => {
-    axios.get('http://127.0.0.1:8000/api/admin/promos', {
+    axios.get('https://artazone-api.onrender.com/api/admin/promos', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setPromos(res.data.data))
@@ -42,11 +42,11 @@ export default function AdminPromo() {
     e.preventDefault();
     try {
       if (editingId) {
-        await axios.put(`http://127.0.0.1:8000/api/admin/promos/${editingId}`, formData, {
+        await axios.put(`https://artazone-api.onrender.com/api/admin/promos/${editingId}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        await axios.post('http://127.0.0.1:8000/api/admin/promos', formData, {
+        await axios.post('https://artazone-api.onrender.com/api/admin/promos', formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -60,7 +60,7 @@ export default function AdminPromo() {
   const handleDelete = async (id) => {
     if (!window.confirm('Yakin ingin menghapus voucher ini?')) return;
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/admin/promos/${id}`, {
+      await axios.delete(`https://artazone-api.onrender.com/api/admin/promos/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchPromos();

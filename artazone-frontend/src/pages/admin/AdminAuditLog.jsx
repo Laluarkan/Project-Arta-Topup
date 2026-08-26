@@ -16,7 +16,7 @@ export default function AdminAuditLog() {
       navigate('/auth');
       return;
     }
-    axios.get('http://127.0.0.1:8000/api/admin/audit-logs', {
+    axios.get('https://artazone-api.onrender.com/api/admin/audit-logs', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setLogs(res.data.data))

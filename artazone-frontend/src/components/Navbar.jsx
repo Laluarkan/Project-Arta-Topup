@@ -11,7 +11,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     if (token) {
       try {
-        await axios.post('http://127.0.0.1:8000/api/logout', {}, {
+        await axios.post('https://artazone-api.onrender.com/api/logout', {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } catch (error) {

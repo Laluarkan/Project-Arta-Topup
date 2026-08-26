@@ -25,12 +25,12 @@ export default function DashboardPage() {
 
     const fetchData = async () => {
       try {
-        const userRes = await axios.get('http://127.0.0.1:8000/api/user', {
+        const userRes = await axios.get('https://artazone-api.onrender.com/api/user', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUser(userRes.data);
 
-        const trxRes = await axios.get('http://127.0.0.1:8000/api/user/transactions', {
+        const trxRes = await axios.get('https://artazone-api.onrender.com/api/user/transactions', {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (trxRes.data.status === 'success') {

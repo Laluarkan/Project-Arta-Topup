@@ -15,7 +15,7 @@ export default function AdminTicket() {
   const token = localStorage.getItem('token');
 
   const fetchTickets = () => {
-    axios.get('http://127.0.0.1:8000/api/admin/tickets', {
+    axios.get('https://artazone-api.onrender.com/api/admin/tickets', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setTickets(res.data.data))
@@ -33,7 +33,7 @@ export default function AdminTicket() {
 
   const handleUpdateStatus = async (id, newStatus) => {
     try {
-      await axios.put(`http://127.0.0.1:8000/api/admin/tickets/${id}/status`, 
+      await axios.put(`https://artazone-api.onrender.com/api/admin/tickets/${id}/status`, 
         { status: newStatus }, 
         { headers: { Authorization: `Bearer ${token}` } }
       );

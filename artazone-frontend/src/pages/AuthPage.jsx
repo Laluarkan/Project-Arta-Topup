@@ -55,7 +55,7 @@ export default function AuthPage() {
     const payload = isLogin ? { email, password } : { name, email, password };
 
     try {
-      const res = await axios.post(`http://127.0.0.1:8000${endpoint}`, payload);
+      const res = await axios.post(`https://artazone-api.onrender.com${endpoint}`, payload);
       
       if (res.data.status === 'success') {
         localStorage.setItem('token', res.data.data.token);

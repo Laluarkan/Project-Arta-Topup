@@ -50,7 +50,7 @@ export default function DetailPage() {
   const [paymentMethod, setPaymentMethod] = useState(token ? 'wallet' : 'qris');
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/categories')
+    axios.get('https://artazone-api.onrender.com/api/categories')
       .then(res => {
         const cat = res.data.data.find(c => c.id === id);
         if (cat) {
@@ -58,7 +58,7 @@ export default function DetailPage() {
           setCategoryIcon(cat.icon);
         }
       });
-    axios.get(`http://127.0.0.1:8000/api/products/${id}`)
+    axios.get(`https://artazone-api.onrender.com/api/products/${id}`)
       .then(res => {
         if (res.data.status === 'success') {
           setProducts(res.data.data);
@@ -85,7 +85,7 @@ export default function DetailPage() {
     if (!promoCodeInput) return;
     setIsCheckingPromo(true);
     try {
-      const res = await axios.post('http://127.0.0.1:8000/api/promos/validate', { code: promoCodeInput });
+      const res = await axios.post('https://artazone-api.onrender.com/api/promos/validate', { code: promoCodeInput });
       setAppliedPromo(res.data.data);
       setPopup({ isOpen: true, message: 'Voucher berhasil digunakan!', type: 'success' });
     } catch (err) {
@@ -120,7 +120,7 @@ export default function DetailPage() {
     };
     
     try {
-      const res = await axios.post(`http://127.0.0.1:8000${endpoint}`, payload, { headers });
+      const res = await axios.post(`https://artazone-api.onrender.com${endpoint}`, payload, { headers });
       
       if (paymentMethod === 'wallet') {
         const trxId = res.data.data.trx_id;

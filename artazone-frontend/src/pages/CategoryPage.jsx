@@ -10,7 +10,7 @@ export default function CategoryPage() {
   const [activeTab, setActiveTab] = useState('Semua');
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/categories')
+    axios.get('https://artazone-api.onrender.com/api/categories')
       .then(res => {
         if (res.data.status === 'success') {
           setCategories(res.data.data);

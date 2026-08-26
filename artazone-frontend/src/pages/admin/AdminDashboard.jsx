@@ -15,7 +15,7 @@ export default function AdminDashboard() {
       return;
     }
 
-    axios.get('http://127.0.0.1:8000/api/admin/dashboard', {
+    axios.get('https://artazone-api.onrender.com/api/admin/dashboard', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => {

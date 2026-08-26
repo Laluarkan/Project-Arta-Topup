@@ -20,7 +20,7 @@ export default function SettingsPage() {
       navigate('/auth');
       return;
     }
-    axios.get('http://127.0.0.1:8000/api/user', { headers: { Authorization: `Bearer ${token}` } })
+    axios.get('https://artazone-api.onrender.com/api/user', { headers: { Authorization: `Bearer ${token}` } })
       .then(res => {
         setUser(res.data);
         setName(res.data.name);
@@ -36,7 +36,7 @@ export default function SettingsPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await axios.put('http://127.0.0.1:8000/api/user/profile', { name, password }, {
+      await axios.put('https://artazone-api.onrender.com/api/user/profile', { name, password }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Profil berhasil diperbarui!');
