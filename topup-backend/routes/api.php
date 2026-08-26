@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\DigiflazzWebhookController;
 use App\Http\Controllers\Api\PromoController;
 use App\Services\DigiflazzService;
 use Illuminate\Support\Facades\Schema;
+use App\Http\Controllers\Api\DigiflazzController;
 
 // Anti Brute-Force: Maksimal 5 percobaan per menit untuk Login/Register
 Route::middleware('throttle:5,1')->group(function () {
@@ -107,5 +108,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/settings', [AdminSettingController::class, 'index']);
         Route::post('/settings', [AdminSettingController::class, 'store']);
+
+        Route::post('/admin/digiflazz/sync', [DigiflazzController::class, 'sync']);
     });
 });

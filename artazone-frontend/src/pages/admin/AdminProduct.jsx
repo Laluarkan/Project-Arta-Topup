@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 import AdminSidebar from '../../components/AdminSidebar';
 
 export default function AdminProduct() {
@@ -35,16 +36,55 @@ export default function AdminProduct() {
   }, [navigate, token]);
 
   const handleSync = async () => {
-    if (!window.confirm('Proses ini akan menarik data harga modal terbaru dari Digiflazz dan MENERAPKAN MARGIN yang sudah Anda atur. Lanjutkan?')) return;
+    const confirmResult = await Swal.fire({
+      title: 'Sinkronisasi Digiflazz?',
+      text: 'Proses ini akan menarik data harga modal terbaru dari Digiflazz dan menerapkan margin yang sudah diatur. Lanjutkan?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#7c3aed',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Tarik Data!',
+      cancelButtonText: 'Batal',
+      position: 'center'
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
     setIsSyncing(true);
+    
+    Swal.fire({
+      title: 'Sinkronisasi...',
+      text: 'Sedang menarik data terbaru dari server Digiflazz.',
+      allowOutsideClick: false,
+      position: 'center',
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
     try {
-      const res = await axios.post('https://artazone-api.onrender.com/api/admin/sync-products', {}, {
+      // Menggunakan endpoint baru yang kita buat di Laravel sebelumnya
+      const res = await axios.post('https://artazone-api.onrender.com/api/admin/digiflazz/sync', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('✅ ' + res.data.message);
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: res.data.message,
+        position: 'center',
+        showConfirmButton: true
+      });
+      
       fetchProducts();
     } catch (error) {
-      alert('❌ Gagal menyinkronkan produk. Pastikan API Key di .env sudah benar.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Sinkronisasi',
+        text: error.response?.data?.message || 'Pastikan konfigurasi API sudah benar.',
+        position: 'center',
+        showConfirmButton: true
+      });
     } finally {
       setIsSyncing(false);
     }
@@ -56,11 +96,25 @@ export default function AdminProduct() {
       await axios.put(`https://artazone-api.onrender.com/api/admin/products/${editingProduct.id}`, editForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('✅ Produk berhasil diperbarui (Edit Manual)');
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Tersimpan',
+        text: 'Produk berhasil diperbarui (Edit Manual)',
+        position: 'center',
+        timer: 2000,
+        showConfirmButton: false
+      });
+      
       setEditingProduct(null);
       fetchProducts();
     } catch (error) {
-      alert('❌ Gagal memperbarui produk');
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: 'Gagal memperbarui produk',
+        position: 'center'
+      });
     }
   };
 
