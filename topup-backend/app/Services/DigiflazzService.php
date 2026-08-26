@@ -26,29 +26,17 @@ class DigiflazzService
         ];
     }
 
-    // FUNGSI BARU: Logika Margin Berjenjang (Tiered Pricing)
     private function calculatePrice($basePrice, $role = 'member')
     {
-        $margin = 0;
+        $persentaseMargin = ($role === 'member') ? 0.05 : 0.03; 
+        
+        $margin = $basePrice * $persentaseMargin;
 
-        if ($basePrice < 10000) {
-            $margin = 1500;       // Modal di bawah 10rb -> Untung Rp1.500
-        } elseif ($basePrice < 30000) {
-            $margin = 2000;       // Modal 10rb - 30rb -> Untung Rp2.000
-        } elseif ($basePrice < 60000) {
-            $margin = 3000;       // Modal 30rb - 60rb -> Untung Rp3.000
-        } elseif ($basePrice < 100000) {
-            $margin = 4000;       // Modal 60rb - 100rb -> Untung Rp4.000
-        } else {
-            $margin = 5500;       // Modal 100rb ke atas -> Untung Rp5.500
+        if ($margin < 1000) {
+            $margin = 1000;
         }
 
-        // Reseller mendapat diskon harga (potong margin)
-        if ($role === 'reseller') {
-            $margin -= 500;
-        }
-
-        return $basePrice + $margin;
+        return ceil($basePrice + $margin);
     }
 
     public function cekSaldo()
@@ -184,11 +172,8 @@ class DigiflazzService
                         'category_id' => $category->id,
                         'product_name' => $item['product_name'],
                         'provider_price' => $item['price'],
-                        
-                        // Memanggil fungsi logika berjenjang
                         'price_member' => $this->calculatePrice($item['price'], 'member'),
                         'price_reseller' => $this->calculatePrice($item['price'], 'reseller'),
-                        
                         'stock_status' => $stockStatus,
                         'is_active' => $stockStatus === 'available' ? true : false,
                     ]
