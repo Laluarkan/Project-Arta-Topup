@@ -26,13 +26,11 @@ class DigiflazzService
         ];
     }
 
-    private function calculatePrice($basePrice, $productName, $role = 'member')
+    private function calculatePrice($basePrice, $role = 'member')
     {
-        // 1. Ambil margin dari tabel settings (key: 'margin' sesuai frontend)
         $dbMargin = Setting::where('key', 'margin')->value('value');
         $marginPercent = $dbMargin !== null ? (float)$dbMargin : 5;
         
-        // 2. Hitung Margin Dasar (Reseller dipotong 2% agar lebih murah)
         $persentaseMargin = ($role === 'member') ? ($marginPercent / 100) : (($marginPercent - 2) / 100); 
         $margin = $basePrice * $persentaseMargin;
 
@@ -40,21 +38,7 @@ class DigiflazzService
             $margin = 1000;
         }
 
-        $sellPrice = $basePrice + $margin;
-
-        // 3. SMART PRICING: Deteksi Nominal di Nama Produk (Contoh: "Telkomsel 50.000")
-        if (preg_match('/(?<!\d)([1-9]\d{1,2}(?:\.\d{3})+)(?!\d)/', $productName, $matches)) {
-            $nominal = (int) str_replace('.', '', $matches[1]);
-            
-            // Jika harga jual yang dihitung lebih murah dari nominal (Pulsa 50rb dijual 49rb)
-            if ($sellPrice < $nominal) {
-                // Paksa harga jual menjadi setara nominal ditambah margin flat wajar (Rp 1.000)
-                $sellPrice = $nominal + ($role === 'member' ? 1000 : 500); 
-            }
-        }
-
-        // 4. Pembulatan agar angka belakangnya cantik (Kelipatan Rp 100, misal: 51.088 -> 51.100)
-        return ceil($sellPrice / 100) * 100;
+        return ceil($basePrice + $margin);
     }
 
     public function cekSaldo()
@@ -190,11 +174,8 @@ class DigiflazzService
                         'category_id' => $category->id,
                         'product_name' => $item['product_name'],
                         'provider_price' => $item['price'],
-                        
-                        // Melempar nama produk ke fungsi agar bisa dianalisa oleh Smart Pricing
-                        'price_member' => $this->calculatePrice($item['price'], $item['product_name'], 'member'),
-                        'price_reseller' => $this->calculatePrice($item['price'], $item['product_name'], 'reseller'),
-                        
+                        'price_member' => $this->calculatePrice($item['price'], 'member'),
+                        'price_reseller' => $this->calculatePrice($item['price'], 'reseller'),
                         'stock_status' => $stockStatus,
                         'is_active' => $stockStatus === 'available' ? true : false,
                     ]
