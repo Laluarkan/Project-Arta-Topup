@@ -63,15 +63,15 @@ export default function AdminProduct() {
     });
 
     try {
-      // Menggunakan endpoint baru yang kita buat di Laravel sebelumnya
-      const res = await axios.post('https://artazone-api.onrender.com/api/admin/digiflazz/sync', {}, {
+      // PERBAIKAN: Menggunakan endpoint aslimu yang sudah ada di Render
+      const res = await axios.post('https://artazone-api.onrender.com/api/admin/sync-products', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       Swal.fire({
         icon: 'success',
         title: 'Berhasil',
-        text: res.data.message,
+        text: res.data.message || 'Data berhasil disinkronkan',
         position: 'center',
         showConfirmButton: true
       });
