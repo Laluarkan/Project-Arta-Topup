@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { font-family:'Plus Jakarta Sans',sans-serif; color:#0F0F12; background:#fff; }
+.font-display { font-family:'Rajdhani',sans-serif; }
+
+::-webkit-scrollbar { width:8px; height:8px; }
+::-webkit-scrollbar-thumb { background:#0F0F12; border-radius:8px; }
+::-webkit-scrollbar-track { background:transparent; }
+
+.card { background:#fff; border:2.5px solid #0F0F12; border-radius:16px; box-shadow:6px 6px 0 #0F0F12; }
+.card-sm { background:#fff; border:2px solid #0F0F12; border-radius:12px; box-shadow:4px 4px 0 #0F0F12; }
+
+.btn-primary { 
+  font-family:'Rajdhani',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+  background:#6D28D9; color:#fff; border:2.5px solid #0F0F12; border-radius:10px; box-shadow:4px 4px 0 #0F0F12;
+  transition:all .15s ease; 
+}
+.btn-primary:hover { transform:translate(-2px,-2px); box-shadow:6px 6px 0 #0F0F12; }
+
+.btn-accent { 
+  font-family:'Rajdhani',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+  background:#FACC15; color:#0F0F12; border:2.5px solid #0F0F12; border-radius:10px; box-shadow:4px 4px 0 #0F0F12;
+  transition:all .15s ease; 
+}
+.btn-accent:hover { transform:translate(-2px,-2px); box-shadow:6px 6px 0 #0F0F12; }
+
+.btn-ghost { 
+  font-family:'Rajdhani',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+  background:#fff; color:#0F0F12; border:2.5px solid #0F0F12; border-radius:10px; 
+}
+
+.badge { 
+  font-family:'Rajdhani',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.06em; font-size:.65rem;
+  background:#0F0F12; color:#FACC15; padding:.25rem .65rem; border-radius:999px; display:inline-block; 
+}
+.badge-outline { 
+  font-family:'Rajdhani',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.06em; font-size:.65rem;
+  border:2px solid #0F0F12; color:#0F0F12; padding:.2rem .6rem; border-radius:999px; display:inline-block; 
+}
+
+.glow { box-shadow:0 0 40px rgba(124,58,237,.25); }
+
+.cut-divider { 
+  height:34px; background:#0F0F12;
+  clip-path:polygon(0 0,4% 100%,8% 0,12% 100%,16% 0,20% 100%,24% 0,28% 100%,32% 0,36% 100%,40% 0,44% 100%,48% 0,52% 100%,56% 0,60% 100%,64% 0,68% 100%,72% 0,76% 100%,80% 0,84% 100%,88% 0,92% 100%,96% 0,100% 100%,100% 0); 
+}

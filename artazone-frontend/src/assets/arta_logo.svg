@@ -1,0 +1,69 @@
+<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#12101c"/>
+      <stop offset="100%" stop-color="#08070d"/>
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="yellowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd23f"/>
+      <stop offset="100%" stop-color="#f5a623"/>
+    </linearGradient>
+    <filter id="softGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- background -->
+  <rect x="0" y="0" width="600" height="600" fill="url(#bgGrad)" rx="36"/>
+
+  <!-- badge: rounded square -->
+  <rect x="185" y="90" width="230" height="230" rx="52" fill="url(#purpleGrad)" filter="url(#softGlow)"/>
+  <rect x="185" y="90" width="230" height="230" rx="52" fill="none" stroke="#1a1626" stroke-width="4"/>
+
+  <!-- game controller icon -->
+  <g transform="translate(300,205)">
+    <path d="
+      M -75 -6
+      Q -75 -42 -44 -44
+      L 44 -44
+      Q 75 -42 75 -6
+      L 75 16
+      Q 75 42 52 38
+      Q 36 35 28 18
+      L -28 18
+      Q -36 35 -52 38
+      Q -75 42 -75 16
+      Z"
+      fill="#ffffff"/>
+    <!-- d-pad -->
+    <rect x="-58" y="-14" width="8" height="26" rx="2" fill="#6d28d9"/>
+    <rect x="-67" y="-5" width="26" height="8" rx="2" fill="#6d28d9"/>
+    <!-- 4 face buttons in diamond layout -->
+    <circle cx="52" cy="-24" r="6.5" fill="url(#yellowGrad)"/>
+    <circle cx="52" cy="0" r="6.5" fill="url(#yellowGrad)"/>
+    <circle cx="40" cy="-12" r="6.5" fill="url(#yellowGrad)"/>
+    <circle cx="64" cy="-12" r="6.5" fill="url(#yellowGrad)"/>
+    <!-- analog sticks in the middle -->
+    <circle cx="-14" cy="6" r="11" fill="#e9e2fb"/>
+    <circle cx="-14" cy="6" r="7" fill="#6d28d9"/>
+    <circle cx="14" cy="6" r="11" fill="#e9e2fb"/>
+    <circle cx="14" cy="6" r="7" fill="#6d28d9"/>
+  </g>
+
+  <!-- small pixel/game dots accent -->
+  <circle cx="215" cy="120" r="8" fill="#ffffff" opacity="0.9"/>
+  <circle cx="385" cy="290" r="8" fill="#ffffff" opacity="0.9"/>
+
+  <!-- brand wordmark -->
+  <text x="300" y="475" font-family="Arial, Helvetica, sans-serif" font-size="66" font-weight="800" text-anchor="middle" letter-spacing="1">
+    <tspan fill="#ffffff">Ar</tspan><tspan fill="url(#yellowGrad)">Ta</tspan><tspan fill="#ffffff"> </tspan><tspan fill="#a78bfa">Zone</tspan>
+  </text>
+</svg>
