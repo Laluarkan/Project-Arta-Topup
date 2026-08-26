@@ -37,7 +37,6 @@ export default function DetailPage() {
   const [userId, setUserId] = useState('');
   const [zoneId, setZoneId] = useState('');
   
-  // State Baru untuk Fitur Cek Nickname
   const [nickname, setNickname] = useState('');
   const [isCheckingName, setIsCheckingName] = useState(false);
 
@@ -75,16 +74,27 @@ export default function DetailPage() {
 
   const getInputConfig = (catName) => {
     const name = (catName || '').toUpperCase();
+    
     if (name.includes('MOBILE LEGENDS')) return { type: 'double', label1: 'User ID', label2: 'Zone ID', desc: 'Masukkan User ID dan Zone ID. Contoh: 1234567 (1234)' };
     if (name.includes('GENSHIN')) return { type: 'server', label1: 'User ID', label2: 'Pilih Server', desc: 'Masukkan User ID dan pilih Server Anda.' };
-    if (name.includes('FREE FIRE') || name.includes('PUBG') || name.includes('VALORANT')) return { type: 'single', label1: 'Player ID / User ID', desc: 'Masukkan Player ID akun Anda.' };
-    if (name.includes('PLN') || name.includes('GAS') || name.includes('VISION') || name.includes('PDAM')) return { type: 'single', label1: 'No. Pelanggan / ID Meter', desc: 'Masukkan Nomor Pelanggan yang valid.' };
-    return { type: 'single', label1: 'Nomor Handphone / Tujuan', desc: 'Masukkan nomor HP atau nomor tujuan.' };
+    
+    if (name.includes('FREE FIRE') || name.includes('PUBG') || name.includes('VALORANT') || name.includes('ARENA OF VALOR') || name.includes('POINT BLANK') || name.includes('CALL OF DUTY')) {
+      return { type: 'single', label1: 'Player ID / User ID', desc: 'Masukkan Player ID akun game Anda.' };
+    }
+    
+    if (name.includes('PLN') || name.includes('GAS') || name.includes('VISION') || name.includes('PDAM')) {
+      return { type: 'single', label1: 'No. Pelanggan / ID Meter', desc: 'Masukkan Nomor Pelanggan yang valid.' };
+    }
+    
+    if (name.includes('PULSA') || name.includes('DATA') || name.includes('TELKOMSEL') || name.includes('INDOSAT') || name.includes('XL') || name.includes('TRI') || name.includes('AXIS') || name.includes('SMARTFREN')) {
+      return { type: 'single', label1: 'Nomor Handphone', desc: 'Masukkan nomor HP tujuan.' };
+    }
+
+    return { type: 'single', label1: 'ID Pengguna / Tujuan', desc: 'Masukkan ID akun atau nomor tujuan yang valid.' };
   };
 
   const inputConfig = getInputConfig(categoryName);
 
-  // Fungsi Baru: Cek Nickname Game
   const handleCheckNickname = async () => {
     if (userId.includes('<') || userId.includes('>') || zoneId.includes('<') || zoneId.includes('>')) {
       setPopup({ isOpen: true, message: 'Format ID tidak valid.', type: 'error' });
@@ -227,11 +237,11 @@ export default function DetailPage() {
         onClose={() => setPopup({ ...popup, isOpen: false })} 
       />
 
-      <div className="px-8 py-5 border-b-2 border-ink bg-white shrink-0">
+      <div className="px-4 md:px-8 py-4 border-b-2 border-ink bg-white shrink-0">
         <span className="text-xs text-ink/40">Beranda / Kategori / </span>
         <span className="font-bold text-sm">{categoryName}</span>
       </div>
-      <div className="px-8 py-8 grid lg:grid-cols-3 gap-8 bg-white flex-1 items-start">
+      <div className="px-4 md:px-8 py-6 grid lg:grid-cols-3 gap-8 bg-white flex-1 items-start">
         <div className="lg:col-span-1">
           <div className="card p-5 sticky top-8">
             <div className="w-full h-40 bg-violet-100 rounded-xl mb-4 border-2 border-ink/5 flex items-center justify-center overflow-hidden">
@@ -255,11 +265,11 @@ export default function DetailPage() {
             </div>
           </div>
         </div>
-        <div className="lg:col-span-2 card p-6 h-fit">
+        <div className="lg:col-span-2 card p-5 md:p-6 h-fit">
           <p className="font-display font-700 text-sm tracking-widest text-ink/40 mb-1">STEP 1 — DATA AKUN</p>
           <p className="text-xs text-ink/50 mb-4">{inputConfig.desc}</p>
           
-          <div className={`grid ${inputConfig.type !== 'single' ? 'grid-cols-2' : 'grid-cols-1'} gap-3 mb-3`}>
+          <div className={`grid ${inputConfig.type !== 'single' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-3 mb-3`}>
             <input 
               className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600" 
               placeholder={inputConfig.label1} 
@@ -287,8 +297,7 @@ export default function DetailPage() {
             )}
           </div>
 
-          {/* Kolom Nickname Otomatis & Tombol Cek */}
-          <div className="flex gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <input 
               className="flex-1 border-2 border-ink bg-ink/5 rounded-[10px] px-3.5 py-2 text-sm outline-none font-bold text-violet-700 cursor-not-allowed placeholder-ink/40"
               placeholder="Nickname Game (Otomatis)"
@@ -298,7 +307,7 @@ export default function DetailPage() {
             <button 
               onClick={handleCheckNickname}
               disabled={!userId || (inputConfig.type !== 'single' && !zoneId) || isCheckingName}
-              className="btn-primary px-4 py-2 text-sm whitespace-nowrap disabled:opacity-50"
+              className="btn-primary w-full sm:w-auto px-4 py-2 text-sm whitespace-nowrap disabled:opacity-50"
             >
               {isCheckingName ? 'Mengecek...' : 'Cek Nickname'}
             </button>
@@ -338,7 +347,7 @@ export default function DetailPage() {
           <p className="font-display font-700 text-sm tracking-widest text-ink/40 mb-2">STEP 3 — KODE VOUCHER</p>
           {token ? (
             <div className="mb-6">
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input 
                   className="flex-1 border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600 disabled:bg-ink/5 disabled:text-ink/50" 
                   placeholder="Masukkan Kode Voucher" 
@@ -350,14 +359,14 @@ export default function DetailPage() {
                   <button 
                     onClick={checkPromo} 
                     disabled={!promoCodeInput || isCheckingPromo || !selectedProduct}
-                    className="btn-primary px-6 py-2 text-sm whitespace-nowrap disabled:opacity-50"
+                    className="btn-primary w-full sm:w-auto px-6 py-2 text-sm whitespace-nowrap disabled:opacity-50"
                   >
                     {isCheckingPromo ? 'Cek...' : 'Terapkan'}
                   </button>
                 ) : (
                   <button 
                     onClick={removePromo} 
-                    className="btn-ghost px-6 py-2 text-sm whitespace-nowrap text-red-600 hover:bg-red-50"
+                    className="btn-ghost w-full sm:w-auto px-6 py-2 text-sm whitespace-nowrap text-red-600 hover:bg-red-50"
                   >
                     Hapus
                   </button>
@@ -376,14 +385,14 @@ export default function DetailPage() {
             {token && (
               <span 
                 onClick={() => setPaymentMethod('wallet')} 
-                className={`cursor-pointer ${paymentMethod === 'wallet' ? 'badge' : 'badge-outline'}`}
+                className={`cursor-pointer w-full sm:w-auto text-center ${paymentMethod === 'wallet' ? 'badge' : 'badge-outline'}`}
               >
                 Saldo ArTa Zone
               </span>
             )}
             <span 
               onClick={() => setPaymentMethod('qris')} 
-              className={`cursor-pointer ${paymentMethod === 'qris' ? 'badge' : 'badge-outline'}`}
+              className={`cursor-pointer w-full sm:w-auto text-center ${paymentMethod === 'qris' ? 'badge' : 'badge-outline'}`}
             >
               QRIS / E-Wallet (Midtrans)
             </span>

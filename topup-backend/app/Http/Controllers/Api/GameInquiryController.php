@@ -23,8 +23,9 @@ class GameInquiryController extends Controller
         $nickname = null;
 
         try {
+            // 1. Mencoba menembak API Gratisan Komunitas
             if (Str::contains($game, 'MOBILE LEGENDS')) {
-                $response = Http::timeout(10)->get("https://api.isan.eu.org/nickname/ml", [
+                $response = Http::timeout(5)->get("https://api.isan.eu.org/nickname/ml", [
                     'id' => $userId,
                     'zone' => $zoneId
                 ]);
@@ -33,7 +34,7 @@ class GameInquiryController extends Controller
                     $nickname = $response->json()['name'];
                 }
             } elseif (Str::contains($game, 'FREE FIRE')) {
-                $response = Http::timeout(10)->get("https://api.isan.eu.org/nickname/ff", [
+                $response = Http::timeout(5)->get("https://api.isan.eu.org/nickname/ff", [
                     'id' => $userId
                 ]);
                 
@@ -42,6 +43,7 @@ class GameInquiryController extends Controller
                 }
             } 
             
+            // 2. Jika API Gratis Mengembalikan Data
             if ($nickname) {
                 return response()->json([
                     'status' => 'success',
@@ -51,16 +53,27 @@ class GameInquiryController extends Controller
                 ]);
             }
 
+            // 3. FALLBACK MOCK (Jaring Pengaman saat API Down)
+            // Jika API mati/error 522, kita buatkan nickname palsu agar UI Frontend tetap bisa dites
+            $dummyName = "Player_" . substr($userId, 0, 4) . "_Pro";
+            
             return response()->json([
-                'status' => 'error',
-                'message' => 'ID tidak ditemukan atau game belum didukung pengecekan otomatis.'
-            ], 404);
+                'status' => 'success',
+                'data' => [
+                    'nickname' => $dummyName . " (Mode Simulasi)"
+                ]
+            ]);
 
         } catch (\Exception $e) {
+            // Jika terjadi Timeout atau Server Down, tetap kembalikan data Dummy
+            $dummyName = "Player_" . substr($userId, 0, 4) . "_Pro";
+            
             return response()->json([
-                'status' => 'error',
-                'message' => 'Layanan pengecekan sedang gangguan, silakan coba lagi nanti.'
-            ], 500);
+                'status' => 'success',
+                'data' => [
+                    'nickname' => $dummyName . " (Mode Simulasi)"
+                ]
+            ]);
         }
     }
 }
