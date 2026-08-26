@@ -9,12 +9,6 @@ export default function LandingPage() {
   const [trendingGames, setTrendingGames] = useState([]);
   const [isLoadingTrending, setIsLoadingTrending] = useState(true);
 
-  const testimonials = [
-    { id: 1, text: "Prosesnya cepat banget, diamond ML langsung masuk kurang dari semenit.", author: "Dimas R." },
-    { id: 2, text: "Harga bersaing dan ada sistem saldo, jadi top up berikutnya makin cepat.", author: "Nadia S." },
-    { id: 3, text: "Pernah gagal transaksi, tapi saldo langsung direfund otomatis. Aman.", author: "Fajar A." }
-  ];
-
   useEffect(() => {
     axios.get('https://artazone-api.onrender.com/api/categories')
       .then(res => {
@@ -142,15 +136,6 @@ export default function LandingPage() {
         <p className="animate-scroll font-display font-700 text-xs md:text-sm tracking-widest cursor-default">
           🔥 PROMO KEMERDEKAAN — DISKON 17% SEMUA GAME &nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;&nbsp; VOUCHER CASHBACK 10RB UNTUK PENGGUNA BARU &nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;&nbsp; TOP UP MALAM HARI EKSTRA BONUS
         </p>
-      </div>
-
-      <div className="px-4 md:px-8 py-10 md:py-14 grid md:grid-cols-3 gap-4 md:gap-5 bg-white">
-        {testimonials.map(review => (
-          <div key={review.id} className="card-sm p-4 md:p-5 flex flex-col justify-between">
-            <p className="text-xs md:text-sm text-ink/70">"{review.text}"</p>
-            <p className="font-display font-700 mt-3 text-xs md:text-sm">— {review.author}</p>
-          </div>
-        ))}
       </div>
 
       <Footer />
