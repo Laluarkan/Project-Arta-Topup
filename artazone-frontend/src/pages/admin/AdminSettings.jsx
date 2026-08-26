@@ -1,5 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 import AdminSidebar from '../../components/AdminSidebar';
 
 export default function AdminSettings() {
@@ -20,7 +23,7 @@ export default function AdminSettings() {
     .then(res => {
       const data = res.data.data;
       setFormData({
-        margin: data.margin || '0',
+        margin: data.margin || '5',
         maintenance: data.maintenance === '1',
         api_mode: data.api_mode || 'development'
       });
@@ -33,7 +36,6 @@ export default function AdminSettings() {
   const handleSave = async (e) => {
     e.preventDefault();
     
-    // Ubah format data agar sesuai dengan penanganan array di SettingController backend kita
     const payload = {
       settings: [
         { key: 'margin', value: formData.margin },
@@ -46,10 +48,23 @@ export default function AdminSettings() {
       await axios.post('https://artazone-api.onrender.com/api/admin/settings', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Pengaturan sistem berhasil disimpan!');
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Tersimpan',
+        text: 'Pengaturan sistem berhasil disimpan!',
+        position: 'center',
+        timer: 2000,
+        showConfirmButton: false
+      });
     } catch (error) {
       console.error(error);
-      alert('Terjadi kesalahan saat menyimpan pengaturan.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: 'Terjadi kesalahan saat menyimpan pengaturan.',
+        position: 'center'
+      });
     }
   };
 
@@ -77,7 +92,6 @@ export default function AdminSettings() {
 
         <form onSubmit={handleSave} className="max-w-4xl space-y-8">
           
-          {/* Box Informasi Saldo Digiflazz */}
           <div className="card p-6 bg-white border-2 border-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex items-center justify-between">
             <div>
               <h2 className="text-sm font-bold text-ink/70">Saldo Digiflazz (Pusat)</h2>
@@ -88,7 +102,6 @@ export default function AdminSettings() {
             </div>
           </div>
 
-          {/* KARTU PENGATURAN MODE API (DEVELOPMENT / PRODUCTION) */}
           <div className={`card p-6 border-2 border-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] transition-colors ${formData.api_mode === 'production' ? 'bg-red-50' : 'bg-white'}`}>
             <div className="flex justify-between items-center mb-4">
               <div>
@@ -105,7 +118,6 @@ export default function AdminSettings() {
                 </p>
               </div>
               
-              {/* Tombol Toggle Brutalist */}
               <button 
                 type="button" 
                 onClick={toggleApiMode}
