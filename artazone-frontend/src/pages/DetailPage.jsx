@@ -4,7 +4,6 @@ import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-// Komponen Popup Kecil
 const PopupModal = ({ isOpen, message, onClose, type = 'error' }) => {
   if (!isOpen) return null;
   return (
@@ -37,13 +36,17 @@ export default function DetailPage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [userId, setUserId] = useState('');
   const [zoneId, setZoneId] = useState('');
+  
+  // State Baru untuk Fitur Cek Nickname
+  const [nickname, setNickname] = useState('');
+  const [isCheckingName, setIsCheckingName] = useState(false);
+
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [promoCodeInput, setPromoCodeInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState(null);
   const [isCheckingPromo, setIsCheckingPromo] = useState(false);
   
-  // State untuk Popup Global di halaman detail
   const [popup, setPopup] = useState({ isOpen: false, message: '', type: 'error' });
 
   const token = localStorage.getItem('token');
@@ -81,6 +84,34 @@ export default function DetailPage() {
 
   const inputConfig = getInputConfig(categoryName);
 
+  // Fungsi Baru: Cek Nickname Game
+  const handleCheckNickname = async () => {
+    if (userId.includes('<') || userId.includes('>') || zoneId.includes('<') || zoneId.includes('>')) {
+      setPopup({ isOpen: true, message: 'Format ID tidak valid.', type: 'error' });
+      return;
+    }
+
+    setIsCheckingName(true);
+    setNickname('');
+    try {
+      const res = await axios.post('https://artazone-api.onrender.com/api/check-nickname', {
+        game: categoryName,
+        user_id: userId,
+        zone_id: inputConfig.type === 'single' ? null : zoneId
+      });
+      
+      setNickname(res.data.data.nickname);
+    } catch (err) {
+      setPopup({ 
+        isOpen: true, 
+        message: err.response?.data?.message || 'ID Game tidak ditemukan atau layanan pengecekan sedang gangguan.', 
+        type: 'error' 
+      });
+    } finally {
+      setIsCheckingName(false);
+    }
+  };
+
   const checkPromo = async () => {
     if (!promoCodeInput) return;
     setIsCheckingPromo(true);
@@ -102,7 +133,6 @@ export default function DetailPage() {
   };
 
   const handleCheckout = async () => {
-    // Validasi Anti XSS (Mencegah tag HTML atau script)
     if (userId.includes('<') || userId.includes('>') || zoneId.includes('<') || zoneId.includes('>')) {
       setPopup({ isOpen: true, message: 'Format ID tidak valid. Karakter dilarang.', type: 'error' });
       return;
@@ -190,7 +220,6 @@ export default function DetailPage() {
     <div className="flex-1 overflow-y-auto bg-white flex flex-col">
       <Navbar />
       
-      {/* Memanggil Popup Component */}
       <PopupModal 
         isOpen={popup.isOpen} 
         message={popup.message} 
@@ -230,7 +259,7 @@ export default function DetailPage() {
           <p className="font-display font-700 text-sm tracking-widest text-ink/40 mb-1">STEP 1 — DATA AKUN</p>
           <p className="text-xs text-ink/50 mb-4">{inputConfig.desc}</p>
           
-          <div className={`grid ${inputConfig.type !== 'single' ? 'grid-cols-2' : 'grid-cols-1'} gap-3 mb-4`}>
+          <div className={`grid ${inputConfig.type !== 'single' ? 'grid-cols-2' : 'grid-cols-1'} gap-3 mb-3`}>
             <input 
               className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600" 
               placeholder={inputConfig.label1} 
@@ -257,6 +286,24 @@ export default function DetailPage() {
               </select>
             )}
           </div>
+
+          {/* Kolom Nickname Otomatis & Tombol Cek */}
+          <div className="flex gap-3 mb-4">
+            <input 
+              className="flex-1 border-2 border-ink bg-ink/5 rounded-[10px] px-3.5 py-2 text-sm outline-none font-bold text-violet-700 cursor-not-allowed placeholder-ink/40"
+              placeholder="Nickname Game (Otomatis)"
+              value={nickname}
+              readOnly
+            />
+            <button 
+              onClick={handleCheckNickname}
+              disabled={!userId || (inputConfig.type !== 'single' && !zoneId) || isCheckingName}
+              className="btn-primary px-4 py-2 text-sm whitespace-nowrap disabled:opacity-50"
+            >
+              {isCheckingName ? 'Mengecek...' : 'Cek Nickname'}
+            </button>
+          </div>
+
           <div className="mb-6">
             <input 
               type="email"
@@ -266,6 +313,7 @@ export default function DetailPage() {
               onChange={e => setEmail(e.target.value)}
             />
           </div>
+
           <p className="font-display font-700 text-sm tracking-widest text-ink/40 mb-2">STEP 2 — PILIH NOMINAL</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
             {products.length > 0 ? products.map(product => (

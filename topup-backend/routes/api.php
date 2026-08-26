@@ -19,17 +19,16 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\TicketController;
 use App\Http\Controllers\Api\DigiflazzWebhookController;
 use App\Http\Controllers\Api\PromoController;
+use App\Http\Controllers\Api\DigiflazzController;
+use App\Http\Controllers\Api\GameInquiryController;
 use App\Services\DigiflazzService;
 use Illuminate\Support\Facades\Schema;
-use App\Http\Controllers\Api\DigiflazzController;
 
-// Anti Brute-Force: Maksimal 5 percobaan per menit untuk Login/Register
 Route::middleware('throttle:5,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 });
 
-// Standar Keamanan: Maksimal 60 request per menit
 Route::middleware('throttle:60,1')->group(function () {
     Route::post('/webhook/midtrans', [MidtransWebhookController::class, 'handleWebhook']);
     Route::post('/webhook/digiflazz', [DigiflazzWebhookController::class, 'handleWebhook']); 
@@ -40,6 +39,8 @@ Route::middleware('throttle:60,1')->group(function () {
 
     Route::get('/promos', [PromoController::class, 'index']);
     Route::post('/promos/validate', [PromoController::class, 'validateCode']);
+    
+    Route::post('/check-nickname', [GameInquiryController::class, 'check']);
 });
 
 if (app()->environment('local')) {
@@ -54,7 +55,6 @@ if (app()->environment('local')) {
     });
 }
 
-// Anti Spam: Maksimal 10 request checkout per menit per IP
 Route::middleware('throttle:20,1')->group(function () {
     Route::post('/checkout/midtrans', [TransactionController::class, 'checkoutMidtrans']);
     Route::get('/transactions/{trx_id}', [TransactionController::class, 'show']);
@@ -74,10 +74,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/user/transactions', [TransactionController::class, 'getUserTransactions']);
     
-    // Anti Spam Checkout untuk User yang Login
     Route::middleware('throttle:10,1')->post('/checkout/wallet', [TransactionController::class, 'checkoutWallet']);
 
-    // Area Khusus Admin
     Route::middleware(['role:super-admin|admin'])->prefix('admin')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index']);
         
@@ -109,6 +107,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/settings', [AdminSettingController::class, 'index']);
         Route::post('/settings', [AdminSettingController::class, 'store']);
 
-        Route::post('/admin/digiflazz/sync', [DigiflazzController::class, 'sync']);
+        Route::post('/digiflazz/sync', [DigiflazzController::class, 'sync']);
     });
 });
