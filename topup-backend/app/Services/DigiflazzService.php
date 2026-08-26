@@ -26,6 +26,31 @@ class DigiflazzService
         ];
     }
 
+    // FUNGSI BARU: Logika Margin Berjenjang (Tiered Pricing)
+    private function calculatePrice($basePrice, $role = 'member')
+    {
+        $margin = 0;
+
+        if ($basePrice < 10000) {
+            $margin = 1500;       // Modal di bawah 10rb -> Untung Rp1.500
+        } elseif ($basePrice < 30000) {
+            $margin = 2000;       // Modal 10rb - 30rb -> Untung Rp2.000
+        } elseif ($basePrice < 60000) {
+            $margin = 3000;       // Modal 30rb - 60rb -> Untung Rp3.000
+        } elseif ($basePrice < 100000) {
+            $margin = 4000;       // Modal 60rb - 100rb -> Untung Rp4.000
+        } else {
+            $margin = 5500;       // Modal 100rb ke atas -> Untung Rp5.500
+        }
+
+        // Reseller mendapat diskon harga (potong margin)
+        if ($role === 'reseller') {
+            $margin -= 500;
+        }
+
+        return $basePrice + $margin;
+    }
+
     public function cekSaldo()
     {
         $config = $this->getApiConfig();
@@ -90,7 +115,6 @@ class DigiflazzService
         ini_set('memory_limit', '-1');
 
         $config = $this->getApiConfig();
-        // BUG FIX: Mengubah "depo" menjadi "pricelist" sesuai dokumentasi resmi
         $sign = md5($config['username'] . $config['key'] . "pricelist");
 
         $response = Http::timeout(120)->post('https://api.digiflazz.com/v1/price-list', [
@@ -160,8 +184,11 @@ class DigiflazzService
                         'category_id' => $category->id,
                         'product_name' => $item['product_name'],
                         'provider_price' => $item['price'],
-                        'price_member' => $item['price'] + 1500,
-                        'price_reseller' => $item['price'] + 500,
+                        
+                        // Memanggil fungsi logika berjenjang
+                        'price_member' => $this->calculatePrice($item['price'], 'member'),
+                        'price_reseller' => $this->calculatePrice($item['price'], 'reseller'),
+                        
                         'stock_status' => $stockStatus,
                         'is_active' => $stockStatus === 'available' ? true : false,
                     ]
