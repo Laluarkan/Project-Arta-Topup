@@ -10,7 +10,8 @@ class MidtransService
 {
     public function createSnapToken($transaction, $user)
     {
-        $apiMode = Setting::where('key', 'api_mode')->value('value') ?? 'development';
+        $dbMode = Setting::where('key', 'api_mode')->value('value');
+        $apiMode = $dbMode ?? (env('APP_ENV') === 'production' ? 'production' : 'development');
         $isProduction = $apiMode === 'production';
         
         $serverKey = $isProduction 

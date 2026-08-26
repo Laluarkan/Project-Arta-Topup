@@ -17,9 +17,9 @@ class RoleAndAdminSeeder extends Seeder
         Role::create(['name' => 'member']);
 
         $superAdmin = User::create([
-            'name' => 'Super Admin',
-            'email' => 'admin@admin.com',
-            'password' => Hash::make('password123'),
+            'name' => 'laluarkan',
+            'email' => 'laluarkan@gmail.com',
+            'password' => Hash::make('Laluarkan123@'),
             'balance' => 0,
             'is_active' => true,
         ]);
