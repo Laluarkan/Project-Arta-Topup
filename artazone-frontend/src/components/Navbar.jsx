@@ -32,7 +32,7 @@ export default function Navbar() {
         <Link to="/" className="flex items-center gap-2" onClick={closeMenu}>
           <img src={logo} alt="ArTaZone Logo" className="h-8 w-8" />
           <div className="font-display font-700 text-xl md:text-2xl text-ink">
-            ArTa<span className="text-gold-400">Zone</span>
+            ArTa<span className="text-gold-400"> Zone</span>
           </div>
         </Link>
         
