@@ -44,7 +44,7 @@ Route::middleware('throttle:60,1')->group(function () {
 });
 
 if (app()->environment('local')) {
-    Route::get('/dev/wipe-and-sync', function () {
+    Route::middleware(['auth:sanctum', 'role:super-admin'])->get('/dev/wipe-and-sync', function () {
         Schema::disableForeignKeyConstraints();
         \App\Models\Product::truncate();
         \App\Models\Category::truncate();

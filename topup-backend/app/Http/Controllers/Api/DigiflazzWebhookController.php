@@ -26,13 +26,17 @@ class DigiflazzWebhookController extends Controller
             ? env('DIGIFLAZZ_WEBHOOK_SECRET_PROD', env('DIGIFLAZZ_WEBHOOK_SECRET')) 
             : env('DIGIFLAZZ_WEBHOOK_SECRET_DEV', env('DIGIFLAZZ_WEBHOOK_SECRET'));
 
-        $signature = $request->header('X-Hub-Signature');
+                $signature = $request->header('X-Hub-Signature');
 
-        if ($secret) {
-            $expectedSignature = 'sha1=' . hash_hmac('sha1', $payload, $secret);
-            if (!hash_equals($expectedSignature, (string)$signature)) {
-                return response()->json(['message' => 'Invalid signature'], 403);
-            }
+        if (empty($secret)) {
+            Log::critical('DIGIFLAZZ_WEBHOOK_SECRET belum diset di .env — webhook ditolak demi keamanan.');
+            return response()->json(['message' => 'Server misconfigured'], 500);
+        }
+
+        $expectedSignature = 'sha1=' . hash_hmac('sha1', $payload, $secret);
+        if (!hash_equals($expectedSignature, (string) $signature)) {
+            Log::warning('Digiflazz webhook signature tidak valid.', ['ip' => $request->ip()]);
+            return response()->json(['message' => 'Invalid signature'], 403);
         }
 
         if (!isset($data['data'])) {

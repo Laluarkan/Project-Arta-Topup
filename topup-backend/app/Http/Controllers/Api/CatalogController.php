@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Http\Resources\ProductResource;
 use Illuminate\Support\Facades\DB;
 
 class CatalogController extends Controller
@@ -29,7 +30,7 @@ class CatalogController extends Controller
             
         return response()->json([
             'status' => 'success',
-            'data' => $products
+            'data' => ProductResource::collection($products)
         ]);
     }
 
