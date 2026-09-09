@@ -11,6 +11,7 @@ export default function AdminSettings() {
     maintenance: false,
     api_mode: 'development'
   });
+  const [gateways, setGateways] = useState({ wallet: true, midtrans: true, pakasir: true });
   const [digiflazzBalance, setDigiflazzBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -28,6 +29,13 @@ export default function AdminSettings() {
         api_mode: data.api_mode || 'development'
       });
       setDigiflazzBalance(data.digiflazz_balance || 0);
+      if (data.active_payment_gateways) {
+        try {
+          setGateways(JSON.parse(data.active_payment_gateways));
+        } catch (e) {
+          // biarkan default kalau JSON rusak
+        }
+      }
     })
     .catch(err => console.error("Gagal memuat pengaturan:", err))
     .finally(() => setIsLoading(false));
@@ -40,7 +48,8 @@ export default function AdminSettings() {
       settings: [
         { key: 'margin', value: formData.margin },
         { key: 'maintenance', value: formData.maintenance ? '1' : '0' },
-        { key: 'api_mode', value: formData.api_mode }
+        { key: 'api_mode', value: formData.api_mode },
+        { key: 'active_payment_gateways', value: JSON.stringify(gateways) }
       ]
     };
 
@@ -190,6 +199,38 @@ export default function AdminSettings() {
               </div>
             </div>
 
+          </div>
+
+          <div className="card p-6 bg-white border-2 border-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
+            <h2 className="text-sm font-bold text-ink/70 mb-1">Metode Pembayaran Aktif</h2>
+            <p className="text-xs text-ink/50 mb-4">
+              Matikan salah satu metode kalau sedang gangguan/down — pelanggan otomatis hanya akan melihat metode yang aktif di halaman checkout.
+            </p>
+            <div className="space-y-3">
+              {[
+                { key: 'wallet', label: 'Saldo ArTa Zone' },
+                { key: 'midtrans', label: 'Midtrans (QRIS / E-Wallet)' },
+                { key: 'pakasir', label: 'Pakasir (QRIS)' }
+              ].map(({ key, label }) => (
+                <div key={key} className="flex items-center justify-between border-2 border-ink rounded-lg px-4 py-2.5 bg-white">
+                  <span className="text-sm font-bold text-ink/70">{label}</span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={gateways[key] ?? true}
+                      onChange={e => setGateways({ ...gateways, [key]: e.target.checked })}
+                    />
+                    <div className="w-11 h-6 bg-ink/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-ink/20 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
+                  </label>
+                </div>
+              ))}
+            </div>
+            {Object.values(gateways).every(v => !v) && (
+              <div className="p-3 bg-red-100 border-2 border-red-300 border-dashed rounded-lg text-red-800 text-xs font-bold mt-4">
+                ⚠️ Semua metode pembayaran nonaktif! Pelanggan tidak akan bisa checkout sama sekali.
+              </div>
+            )}
           </div>
 
           <button type="submit" className="btn-primary px-8 py-3 text-sm glow font-bold">

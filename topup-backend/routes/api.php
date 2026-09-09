@@ -36,6 +36,7 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::post('/webhook/digiflazz', [DigiflazzWebhookController::class, 'handleWebhook']); 
 
     Route::get('/categories', [CatalogController::class, 'getCategories']);
+    Route::get('/payment-gateways/status', [CatalogController::class, 'getActivePaymentGateways']);
     Route::get('/products/{category}', [CatalogController::class, 'getProductsByCategory']);
     Route::get('/trending-games', [CatalogController::class, 'getTrendingGames']);
 

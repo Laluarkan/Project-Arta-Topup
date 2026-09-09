@@ -17,8 +17,20 @@ use Illuminate\Support\Str;
 
 class TransactionController extends Controller
 {
+    private function isGatewayEnabled(string $gateway): bool
+    {
+        $raw = Setting::where('key', 'active_payment_gateways')->value('value');
+        $gateways = $raw ? json_decode($raw, true) : ['wallet' => true, 'midtrans' => true, 'pakasir' => true];
+
+        return $gateways[$gateway] ?? true;
+    }
+
     public function checkoutWallet(Request $request)
     {
+        if (!$this->isGatewayEnabled('wallet')) {
+            return response()->json(['status' => 'error', 'message' => 'Metode pembayaran ini sedang tidak tersedia'], 503);
+        }
+
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'user_game_id' => 'required|string',
@@ -114,6 +126,10 @@ class TransactionController extends Controller
 
     public function checkoutMidtrans(Request $request, MidtransService $midtransService)
     {
+        if (!$this->isGatewayEnabled('midtrans')) {
+            return response()->json(['status' => 'error', 'message' => 'Metode pembayaran ini sedang tidak tersedia'], 503);
+        }
+
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'user_game_id' => 'required|string',
@@ -231,6 +247,10 @@ class TransactionController extends Controller
 
     public function checkoutPakasir(Request $request, \App\Services\PakasirService $pakasirService)
     {
+        if (!$this->isGatewayEnabled('pakasir')) {
+            return response()->json(['status' => 'error', 'message' => 'Metode pembayaran ini sedang tidak tersedia'], 503);
+        }
+
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'user_game_id' => 'required|string',

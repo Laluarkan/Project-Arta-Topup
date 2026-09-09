@@ -5,11 +5,27 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Http\Resources\ProductResource;
 use Illuminate\Support\Facades\DB;
 
 class CatalogController extends Controller
 {
+    public function getActivePaymentGateways()
+    {
+        $raw = Setting::where('key', 'active_payment_gateways')->value('value');
+        $gateways = $raw ? json_decode($raw, true) : [
+            'wallet' => true,
+            'midtrans' => true,
+            'pakasir' => true,
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $gateways
+        ]);
+    }
+
     public function getCategories()
     {
         $categories = Category::where('is_active', true)->get();

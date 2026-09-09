@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -52,6 +53,26 @@ export default function DetailPage() {
   const [paymentMethod, setPaymentMethod] = useState(token ? 'wallet' : 'qris');
   const [pakasirPayment, setPakasirPayment] = useState(null); // { trxId, paymentNumber, totalPayment, expiredAt }
   const [isPolling, setIsPolling] = useState(false);
+  const [activeGateways, setActiveGateways] = useState({ wallet: true, midtrans: true, pakasir: true });
+
+  useEffect(() => {
+    axios.get('https://artazone-api.onrender.com/api/payment-gateways/status')
+      .then(res => {
+        if (res.data.status === 'success') {
+          setActiveGateways(res.data.data);
+          // Kalau metode bayar yang lagi kepilih ternyata mati, geser otomatis ke yang masih aktif
+          setPaymentMethod(prev => {
+            const stillActive = res.data.data[prev === 'qris' ? 'midtrans' : prev];
+            if (stillActive) return prev;
+            if (token && res.data.data.wallet) return 'wallet';
+            if (res.data.data.midtrans) return 'qris';
+            if (res.data.data.pakasir) return 'pakasir';
+            return prev;
+          });
+        }
+      })
+      .catch(() => {}); // kalau gagal fetch, biarkan default semua aktif
+  }, [token]);
 
   useEffect(() => {
     axios.get('https://artazone-api.onrender.com/api/categories')
@@ -463,7 +484,7 @@ export default function DetailPage() {
           )}
           <p className="font-display font-700 text-sm tracking-widest text-ink/40 mb-2">STEP 4 — METODE BAYAR</p>
           <div className="flex gap-3 flex-wrap mb-8">
-            {token && (
+            {token && activeGateways.wallet && (
               <span 
                 onClick={() => setPaymentMethod('wallet')} 
                 className={`cursor-pointer w-full sm:w-auto text-center ${paymentMethod === 'wallet' ? 'badge' : 'badge-outline'}`}
@@ -471,18 +492,25 @@ export default function DetailPage() {
                 Saldo ArTa Zone
               </span>
             )}
-            <span 
-              onClick={() => setPaymentMethod('qris')} 
-              className={`cursor-pointer w-full sm:w-auto text-center ${paymentMethod === 'qris' ? 'badge' : 'badge-outline'}`}
-            >
-              QRIS / E-Wallet (Midtrans)
-            </span>
-            <span 
-              onClick={() => setPaymentMethod('pakasir')} 
-              className={`cursor-pointer w-full sm:w-auto text-center ${paymentMethod === 'pakasir' ? 'badge' : 'badge-outline'}`}
-            >
-              QRIS (Pakasir)
-            </span>
+            {activeGateways.midtrans && (
+              <span 
+                onClick={() => setPaymentMethod('qris')} 
+                className={`cursor-pointer w-full sm:w-auto text-center ${paymentMethod === 'qris' ? 'badge' : 'badge-outline'}`}
+              >
+                QRIS / E-Wallet (Midtrans)
+              </span>
+            )}
+            {activeGateways.pakasir && (
+              <span 
+                onClick={() => setPaymentMethod('pakasir')} 
+                className={`cursor-pointer w-full sm:w-auto text-center ${paymentMethod === 'pakasir' ? 'badge' : 'badge-outline'}`}
+              >
+                QRIS (Pakasir)
+              </span>
+            )}
+            {!activeGateways.wallet && !activeGateways.midtrans && !activeGateways.pakasir && (
+              <p className="text-sm text-red-600 font-bold">Semua metode pembayaran sedang tidak tersedia. Coba lagi nanti.</p>
+            )}
           </div>
           <div className="flex flex-col sm:flex-row justify-between items-center border-t-2 border-ink pt-5 gap-4">
             <div className="text-center sm:text-left w-full sm:w-auto">
