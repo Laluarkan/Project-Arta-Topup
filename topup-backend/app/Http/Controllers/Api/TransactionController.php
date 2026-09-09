@@ -228,4 +228,92 @@ class TransactionController extends Controller
             'data' => $transactions
         ]);
     }
+
+    public function checkoutPakasir(Request $request, \App\Services\PakasirService $pakasirService)
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'user_game_id' => 'required|string',
+            'zone_id' => 'nullable|string',
+            'promo_code' => 'nullable|string',
+            'email' => 'required|email'
+        ]);
+
+        $product = Product::findOrFail($request->product_id);
+
+        if (!$product->is_active || $product->stock_status !== 'available') {
+            return response()->json(['status' => 'error', 'message' => 'Produk sedang tidak tersedia'], 400);
+        }
+
+        $user = auth('sanctum')->user();
+        $price = $product->price_member;
+
+        try {
+            $transaction = DB::transaction(function () use ($request, $product, $user, $price) {
+                $discount = 0;
+                $promo = null;
+
+                if ($request->promo_code) {
+                    $promo = Promo::where('code', $request->promo_code)
+                        ->where('is_active', true)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (!$promo) throw new \Exception('Kode voucher tidak valid.');
+                    if ($promo->expired_at && $promo->expired_at < now()) throw new \Exception('Kode voucher sudah kedaluwarsa.');
+                    if ($promo->limit !== null && $promo->limit <= 0) throw new \Exception('Batas penggunaan voucher sudah habis.');
+
+                    $discount = $promo->type === 'percent' ? ($price * $promo->value / 100) : $promo->value;
+                }
+
+                $finalPrice = max(0, $price - $discount);
+
+                if ($promo && $promo->limit !== null) {
+                    $promo->decrement('limit');
+                }
+
+                $trxId = 'TRX-' . Str::random(20);
+
+                return Transaction::create([
+                    'trx_id' => $trxId,
+                    'user_id' => $user ? $user->id : null,
+                    'guest_email' => $request->email,
+                    'product_id' => $product->id,
+                    'user_game_id' => $request->user_game_id,
+                    'zone_id' => $request->zone_id,
+                    'amount' => $finalPrice,
+                    'discount_amount' => $discount,
+                    'voucher_code' => $promo ? $promo->code : null,
+                    'payment_method' => 'pakasir',
+                    'digiflazz_ref_id' => 'TRX-' . strtoupper(Str::random(10)),
+                    'status' => 'PENDING',
+                ]);
+            });
+
+            $pakasirResponse = $pakasirService->createTransaction(
+                $transaction->trx_id,
+                $transaction->amount,
+                'qris' // atau method lain sesuai pilihan user
+            );
+
+            if (!$pakasirResponse) {
+                throw new \Exception('Gagal membuat transaksi Pakasir');
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Transaksi berhasil dibuat',
+                'data' => [
+                    'transaction' => $transaction,
+                    'payment_number' => $pakasirResponse['payment_number'] ?? null, // QR string / nomor VA
+                    'total_payment' => $pakasirResponse['total_payment'] ?? null,   // amount + fee
+                    'fee' => $pakasirResponse['fee'] ?? null,
+                    'expired_at' => $pakasirResponse['expired_at'] ?? null,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
+        }
+    }
 }

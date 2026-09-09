@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\DigiflazzWebhookController;
 use App\Http\Controllers\Api\PromoController;
 use App\Http\Controllers\Api\DigiflazzController;
 use App\Http\Controllers\Api\GameInquiryController;
+use App\Http\Controllers\Api\PakasirWebhookController;
 use App\Services\DigiflazzService;
 use Illuminate\Support\Facades\Schema;
 
@@ -31,6 +32,7 @@ Route::middleware('throttle:5,1')->group(function () {
 
 Route::middleware('throttle:60,1')->group(function () {
     Route::post('/webhook/midtrans', [MidtransWebhookController::class, 'handleWebhook']);
+    Route::post('/webhook/pakasir', [PakasirWebhookController::class, 'handleWebhook']);
     Route::post('/webhook/digiflazz', [DigiflazzWebhookController::class, 'handleWebhook']); 
 
     Route::get('/categories', [CatalogController::class, 'getCategories']);
@@ -57,6 +59,7 @@ if (app()->environment('local')) {
 
 Route::middleware('throttle:20,1')->group(function () {
     Route::post('/checkout/midtrans', [TransactionController::class, 'checkoutMidtrans']);
+    Route::post('/checkout/pakasir', [TransactionController::class, 'checkoutPakasir'])->middleware('throttle:10,1');
     Route::get('/transactions/{trx_id}', [TransactionController::class, 'show']);
 });
 
