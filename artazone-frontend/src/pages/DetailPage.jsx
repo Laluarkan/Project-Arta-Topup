@@ -50,6 +50,8 @@ export default function DetailPage() {
 
   const token = localStorage.getItem('token');
   const [paymentMethod, setPaymentMethod] = useState(token ? 'wallet' : 'qris');
+  const [pakasirPayment, setPakasirPayment] = useState(null); // { trxId, paymentNumber, totalPayment, expiredAt }
+  const [isPolling, setIsPolling] = useState(false);
 
   useEffect(() => {
     axios.get('https://artazone-api.onrender.com/api/categories')
@@ -142,6 +144,30 @@ export default function DetailPage() {
     setPromoCodeInput('');
   };
 
+  // Polling status transaksi Pakasir setiap 4 detik sampai PAID atau timeout 10 menit
+  const startPollingPakasir = (trxId) => {
+    setIsPolling(true);
+    let elapsed = 0;
+    const interval = setInterval(async () => {
+      elapsed += 4000;
+      try {
+        const res = await axios.get(`https://artazone-api.onrender.com/api/transactions/${trxId}`);
+        const status = res.data?.data?.status;
+        if (status === 'PAID' || status === 'SUCCESS') {
+          clearInterval(interval);
+          setIsPolling(false);
+          navigate(`/status/${trxId}`);
+        }
+      } catch (err) {
+        // Diamkan error polling sesaat, coba lagi di interval berikutnya
+      }
+      if (elapsed >= 600000) { // 10 menit
+        clearInterval(interval);
+        setIsPolling(false);
+      }
+    }, 4000);
+  };
+
   const handleCheckout = async () => {
     if (userId.includes('<') || userId.includes('>') || zoneId.includes('<') || zoneId.includes('>')) {
       setPopup({ isOpen: true, message: 'Format ID tidak valid. Karakter dilarang.', type: 'error' });
@@ -149,7 +175,12 @@ export default function DetailPage() {
     }
 
     setIsLoading(true);
-    const endpoint = paymentMethod === 'wallet' ? '/api/checkout/wallet' : '/api/checkout/midtrans';
+    const endpointMap = {
+      wallet: '/api/checkout/wallet',
+      qris: '/api/checkout/midtrans',
+      pakasir: '/api/checkout/pakasir'
+    };
+    const endpoint = endpointMap[paymentMethod];
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     const payload = {
       product_id: selectedProduct.id,
@@ -165,6 +196,16 @@ export default function DetailPage() {
       if (paymentMethod === 'wallet') {
         const trxId = res.data.data.trx_id;
         navigate(`/status/${trxId}`); 
+      } else if (paymentMethod === 'pakasir') {
+        setIsLoading(false);
+        const { transaction, payment_number, total_payment, expired_at } = res.data.data;
+        setPakasirPayment({
+          trxId: transaction.trx_id,
+          paymentNumber: payment_number,
+          totalPayment: total_payment,
+          expiredAt: expired_at
+        });
+        startPollingPakasir(transaction.trx_id);
       } else {
         const { snap_token, client_key, api_mode, transaction } = res.data.data;
         const trxId = transaction.trx_id;
@@ -236,6 +277,46 @@ export default function DetailPage() {
         type={popup.type} 
         onClose={() => setPopup({ ...popup, isOpen: false })} 
       />
+
+      {pakasirPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-xl">
+            <h3 className="text-lg font-bold text-ink mb-1">Scan QRIS untuk Bayar</h3>
+            <p className="text-xs text-ink/50 mb-4">Order ID: {pakasirPayment.trxId}</p>
+
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(pakasirPayment.paymentNumber)}`}
+              alt="QRIS Pakasir"
+              className="mx-auto border-2 border-ink rounded-xl mb-4"
+            />
+
+            <p className="text-2xl font-display font-700 text-violet-700 mb-1">
+              {formatRupiah(pakasirPayment.totalPayment)}
+            </p>
+            <p className="text-xs text-ink/50 mb-4">
+              Sudah termasuk biaya admin. Berlaku sampai{' '}
+              {pakasirPayment.expiredAt ? new Date(pakasirPayment.expiredAt).toLocaleTimeString('id-ID') : '-'}
+            </p>
+
+            <p className="text-xs text-ink/60 mb-4">
+              {isPolling ? '⏳ Menunggu pembayaran... halaman ini akan otomatis lanjut setelah terbayar.' : 'Polling dihentikan (timeout).'}
+            </p>
+
+            <button
+              onClick={() => navigate(`/status/${pakasirPayment.trxId}`)}
+              className="btn-primary w-full py-2.5 text-sm mb-2"
+            >
+              Sudah Bayar / Cek Status Manual
+            </button>
+            <button
+              onClick={() => setPakasirPayment(null)}
+              className="btn-ghost w-full py-2.5 text-sm text-red-600"
+            >
+              Batalkan
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="px-4 md:px-8 py-4 border-b-2 border-ink bg-white shrink-0">
         <span className="text-xs text-ink/40">Beranda / Kategori / </span>
@@ -395,6 +476,12 @@ export default function DetailPage() {
               className={`cursor-pointer w-full sm:w-auto text-center ${paymentMethod === 'qris' ? 'badge' : 'badge-outline'}`}
             >
               QRIS / E-Wallet (Midtrans)
+            </span>
+            <span 
+              onClick={() => setPaymentMethod('pakasir')} 
+              className={`cursor-pointer w-full sm:w-auto text-center ${paymentMethod === 'pakasir' ? 'badge' : 'badge-outline'}`}
+            >
+              QRIS (Pakasir)
             </span>
           </div>
           <div className="flex flex-col sm:flex-row justify-between items-center border-t-2 border-ink pt-5 gap-4">
