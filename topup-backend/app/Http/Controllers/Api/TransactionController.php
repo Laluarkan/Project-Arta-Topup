@@ -79,9 +79,9 @@ class TransactionController extends Controller
                         ->lockForUpdate()
                         ->first();
                         
-                    if (!$promo) throw new \Exception('Kode voucher tidak valid.');
-                    if ($promo->expired_at && $promo->expired_at < now()) throw new \Exception('Kode voucher sudah kedaluwarsa.');
-                    if ($promo->limit !== null && $promo->limit <= 0) throw new \Exception('Batas penggunaan voucher sudah habis.');
+                    if (!$promo) throw new \App\Exceptions\CheckoutException('Kode voucher tidak valid.');
+                    if ($promo->expired_at && $promo->expired_at < now()) throw new \App\Exceptions\CheckoutException('Kode voucher sudah kedaluwarsa.');
+                    if ($promo->limit !== null && $promo->limit <= 0) throw new \App\Exceptions\CheckoutException('Batas penggunaan voucher sudah habis.');
                     
                     $discount = $promo->type === 'percent' ? ($price * $promo->value / 100) : $promo->value;
                 }
@@ -91,7 +91,7 @@ class TransactionController extends Controller
                 $lockedUser = User::where('id', $user->id)->lockForUpdate()->first();
 
                 if ($lockedUser->balance < $finalPrice) {
-                    throw new \Exception('Saldo wallet tidak mencukupi');
+                    throw new \App\Exceptions\CheckoutException('Saldo wallet tidak mencukupi');
                 }
 
                 if ($promo && $promo->limit !== null) {
@@ -140,8 +140,15 @@ class TransactionController extends Controller
                 'data' => $transaction
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\App\Exceptions\CheckoutException $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
+        } catch (\Throwable $e) {
+            try {
+                \Illuminate\Support\Facades\Log::error('Checkout system error: ' . $e->getMessage());
+            } catch (\Throwable $logError) {
+                // Kalau logging pun gagal (misal storage penuh/permission), jangan sampai ikut menjatuhkan response.
+            }
+            return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan sistem. Silakan coba lagi beberapa saat lagi.'], 500);
         }
     }
 
@@ -191,9 +198,9 @@ class TransactionController extends Controller
                         ->lockForUpdate()
                         ->first();
                         
-                    if (!$promo) throw new \Exception('Kode voucher tidak valid.');
-                    if ($promo->expired_at && $promo->expired_at < now()) throw new \Exception('Kode voucher sudah kedaluwarsa.');
-                    if ($promo->limit !== null && $promo->limit <= 0) throw new \Exception('Batas penggunaan voucher sudah habis.');
+                    if (!$promo) throw new \App\Exceptions\CheckoutException('Kode voucher tidak valid.');
+                    if ($promo->expired_at && $promo->expired_at < now()) throw new \App\Exceptions\CheckoutException('Kode voucher sudah kedaluwarsa.');
+                    if ($promo->limit !== null && $promo->limit <= 0) throw new \App\Exceptions\CheckoutException('Batas penggunaan voucher sudah habis.');
                     
                     $discount = $promo->type === 'percent' ? ($price * $promo->value / 100) : $promo->value;
                 }
@@ -228,7 +235,7 @@ class TransactionController extends Controller
             $snapToken = $midtransService->createSnapToken($transaction, $user);
 
             if (!$snapToken) {
-                throw new \Exception('Gagal mendapatkan token Midtrans');
+                throw new \App\Exceptions\CheckoutException('Gagal mendapatkan token Midtrans');
             }
 
             $apiMode = Setting::where('key', 'api_mode')->value('value') ?? 'development';
@@ -247,8 +254,15 @@ class TransactionController extends Controller
                 ]
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\App\Exceptions\CheckoutException $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
+        } catch (\Throwable $e) {
+            try {
+                \Illuminate\Support\Facades\Log::error('Checkout system error: ' . $e->getMessage());
+            } catch (\Throwable $logError) {
+                // Kalau logging pun gagal (misal storage penuh/permission), jangan sampai ikut menjatuhkan response.
+            }
+            return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan sistem. Silakan coba lagi beberapa saat lagi.'], 500);
         }
     }
 
@@ -325,9 +339,9 @@ class TransactionController extends Controller
                         ->lockForUpdate()
                         ->first();
 
-                    if (!$promo) throw new \Exception('Kode voucher tidak valid.');
-                    if ($promo->expired_at && $promo->expired_at < now()) throw new \Exception('Kode voucher sudah kedaluwarsa.');
-                    if ($promo->limit !== null && $promo->limit <= 0) throw new \Exception('Batas penggunaan voucher sudah habis.');
+                    if (!$promo) throw new \App\Exceptions\CheckoutException('Kode voucher tidak valid.');
+                    if ($promo->expired_at && $promo->expired_at < now()) throw new \App\Exceptions\CheckoutException('Kode voucher sudah kedaluwarsa.');
+                    if ($promo->limit !== null && $promo->limit <= 0) throw new \App\Exceptions\CheckoutException('Batas penggunaan voucher sudah habis.');
 
                     $discount = $promo->type === 'percent' ? ($price * $promo->value / 100) : $promo->value;
                 }
@@ -364,7 +378,7 @@ class TransactionController extends Controller
             );
 
             if (!$pakasirResponse) {
-                throw new \Exception('Gagal membuat transaksi Pakasir');
+                throw new \App\Exceptions\CheckoutException('Gagal membuat transaksi Pakasir');
             }
 
             return response()->json([
@@ -379,8 +393,15 @@ class TransactionController extends Controller
                 ]
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\App\Exceptions\CheckoutException $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
+        } catch (\Throwable $e) {
+            try {
+                \Illuminate\Support\Facades\Log::error('Checkout system error: ' . $e->getMessage());
+            } catch (\Throwable $logError) {
+                // Kalau logging pun gagal (misal storage penuh/permission), jangan sampai ikut menjatuhkan response.
+            }
+            return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan sistem. Silakan coba lagi beberapa saat lagi.'], 500);
         }
     }
 }

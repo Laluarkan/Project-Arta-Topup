@@ -95,7 +95,12 @@ class ProcessTopupJob implements ShouldQueue
                 }
             }
         } catch (\Exception $e) {
-            Log::error("ProcessTopupJob Critical Error (TRX: {$this->trx_id}): " . $e->getMessage());
+            try {
+                Log::error("ProcessTopupJob Critical Error (TRX: {$this->trx_id}): " . $e->getMessage());
+            } catch (\Throwable $logError) {
+                // Logging gagal (misal storage penuh/permission) TIDAK BOLEH menggagalkan
+                // proses refund di bawah ini — itu jauh lebih penting daripada catatan log.
+            }
             
             $transaction = Transaction::with(['user'])->where('trx_id', $this->trx_id)->first();
             $apiMode = Setting::where('key', 'api_mode')->value('value') ?? 'development';
