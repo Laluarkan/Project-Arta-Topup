@@ -20,6 +20,7 @@ import AdminTicket from './pages/admin/AdminTicket';
 import AdminAuditLog from './pages/admin/AdminAuditLog';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminCategory from './pages/admin/AdminCategory';
+import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -31,8 +32,8 @@ function App() {
           <Route path="/detail/:id" element={<DetailPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/status/:id" element={<StatusPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           <Route path="/tickets" element={<TicketPage />} />
           <Route path="/promo" element={<PromoPage />} />
           <Route path="/help" element={<HelpPage />} />
@@ -40,15 +41,15 @@ function App() {
           <Route path="/privacy" element={<PrivacyPage />} />
           
           {/* Admin Routes */}
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/categories" element={<AdminCategory />} />
-          <Route path="/admin/products" element={<AdminProduct />} />
-          <Route path="/admin/transactions" element={<AdminTransaction />} />
-          <Route path="/admin/users" element={<AdminUser />} />
-          <Route path="/admin/vouchers" element={<AdminPromo />} />
-          <Route path="/admin/tickets" element={<AdminTicket />} />
-          <Route path="/admin/audit-logs" element={<AdminAuditLog />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
+          <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="/admin/categories" element={<AdminRoute><AdminCategory /></AdminRoute>} />
+          <Route path="/admin/products" element={<AdminRoute><AdminProduct /></AdminRoute>} />
+          <Route path="/admin/transactions" element={<AdminRoute><AdminTransaction /></AdminRoute>} />
+          <Route path="/admin/users" element={<AdminRoute><AdminUser /></AdminRoute>} />
+          <Route path="/admin/vouchers" element={<AdminRoute><AdminPromo /></AdminRoute>} />
+          <Route path="/admin/tickets" element={<AdminRoute><AdminTicket /></AdminRoute>} />
+          <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLog /></AdminRoute>} />
+          <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
         </Routes>
       </div>
     </Router>
