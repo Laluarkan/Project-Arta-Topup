@@ -25,6 +25,17 @@ class TransactionController extends Controller
         return $gateways[$gateway] ?? true;
     }
 
+    /**
+     * Cek apakah request checkout dengan idempotency_key ini sudah pernah diproses.
+     * Kalau sudah, kembalikan transaksi lama (bukan bikin baru) untuk cegah checkout dobel
+     * akibat double-klik atau retry otomatis dari frontend.
+     */
+    private function findExistingByIdempotencyKey(?string $key): ?Transaction
+    {
+        if (!$key) return null;
+        return Transaction::where('idempotency_key', $key)->first();
+    }
+
     public function checkoutWallet(Request $request)
     {
         if (!$this->isGatewayEnabled('wallet')) {
@@ -36,8 +47,17 @@ class TransactionController extends Controller
             'user_game_id' => 'required|string',
             'zone_id' => 'nullable|string',
             'promo_code' => 'nullable|string',
-            'email' => 'required|email'
+            'email' => 'required|email',
+            'idempotency_key' => 'nullable|string|max:100'
         ]);
+
+        if ($existing = $this->findExistingByIdempotencyKey($request->idempotency_key)) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Transaksi sudah pernah dibuat sebelumnya',
+                'data' => $existing
+            ]);
+        }
 
         $product = Product::findOrFail($request->product_id);
 
@@ -97,6 +117,7 @@ class TransactionController extends Controller
                 // Menambahkan pencatatan discount_amount dan voucher_code
                 return Transaction::create([
                     'trx_id' => $trxId,
+                    'idempotency_key' => $request->idempotency_key,
                     'user_id' => $lockedUser->id,
                     'guest_email' => $request->email,
                     'product_id' => $product->id,
@@ -128,6 +149,18 @@ class TransactionController extends Controller
     {
         if (!$this->isGatewayEnabled('midtrans')) {
             return response()->json(['status' => 'error', 'message' => 'Metode pembayaran ini sedang tidak tersedia'], 503);
+        }
+
+        $request->validate([
+            'idempotency_key' => 'nullable|string|max:100'
+        ]);
+
+        if ($existing = $this->findExistingByIdempotencyKey($request->idempotency_key)) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Transaksi sudah pernah dibuat sebelumnya',
+                'data' => ['transaction' => $existing]
+            ]);
         }
 
         $request->validate([
@@ -176,6 +209,7 @@ class TransactionController extends Controller
 
                 // Menambahkan pencatatan discount_amount dan voucher_code
                 return Transaction::create([
+                    'idempotency_key' => $request->idempotency_key,
                     'trx_id' => $trxId,
                     'user_id' => $user ? $user->id : null,
                     'guest_email' => $request->email,
@@ -252,6 +286,18 @@ class TransactionController extends Controller
         }
 
         $request->validate([
+            'idempotency_key' => 'nullable|string|max:100'
+        ]);
+
+        if ($existing = $this->findExistingByIdempotencyKey($request->idempotency_key)) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Transaksi sudah pernah dibuat sebelumnya',
+                'data' => ['transaction' => $existing]
+            ]);
+        }
+
+        $request->validate([
             'product_id' => 'required|exists:products,id',
             'user_game_id' => 'required|string',
             'zone_id' => 'nullable|string',
@@ -295,6 +341,7 @@ class TransactionController extends Controller
                 $trxId = 'TRX-' . Str::random(20);
 
                 return Transaction::create([
+                    'idempotency_key' => $request->idempotency_key,
                     'trx_id' => $trxId,
                     'user_id' => $user ? $user->id : null,
                     'guest_email' => $request->email,

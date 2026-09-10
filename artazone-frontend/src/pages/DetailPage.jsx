@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
@@ -189,9 +189,24 @@ export default function DetailPage() {
     }, 4000);
   };
 
+  // Idempotency key: dibuat sekali per "niat checkout", regenerate kalau produk yang dipilih berubah.
+  // Dipakai backend untuk mendeteksi kalau request yang sama terkirim dua kali (double-klik/retry network).
+  const idempotencyKeyRef = useRef(crypto.randomUUID());
+  useEffect(() => {
+    idempotencyKeyRef.current = crypto.randomUUID();
+  }, [selectedProduct]);
+
+  // Guard sinkron ekstra selain `disabled` di tombol, supaya klik super cepat
+  // sebelum re-render sempat commit tetap tidak lolos jadi 2 request.
+  const isSubmittingRef = useRef(false);
+
   const handleCheckout = async () => {
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+
     if (userId.includes('<') || userId.includes('>') || zoneId.includes('<') || zoneId.includes('>')) {
       setPopup({ isOpen: true, message: 'Format ID tidak valid. Karakter dilarang.', type: 'error' });
+      isSubmittingRef.current = false;
       return;
     }
 
@@ -208,7 +223,8 @@ export default function DetailPage() {
       user_game_id: userId,
       zone_id: inputConfig.type === 'single' ? null : zoneId,
       promo_code: appliedPromo ? appliedPromo.code : null,
-      email: email 
+      email: email,
+      idempotency_key: idempotencyKeyRef.current
     };
     
     try {
@@ -277,6 +293,8 @@ export default function DetailPage() {
         message: err.response?.data?.message || 'Terjadi kesalahan saat memproses pesanan.', 
         type: 'error' 
       });
+    } finally {
+      isSubmittingRef.current = false;
     }
   };
 
