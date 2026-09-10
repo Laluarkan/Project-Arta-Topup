@@ -26,7 +26,8 @@ class Transaction extends Model
         'digiflazz_ref_id',
         'status',
         'status_note',
-        'guest_email'
+        'guest_email',
+        'idempotency_key'
     ];
 
     public function user()
