@@ -15,7 +15,6 @@ const VerifyEmailProcessPage = () => {
         const expires = searchParams.get('expires');
         const signature = searchParams.get('signature');
         
-        // Pastikan VITE_API_URL sudah diset di file .env frontend kamu
         const apiUrl = import.meta.env.VITE_API_URL || 'https://artazone-api.onrender.com/api';
         
         await axios.get(`${apiUrl}/email/verify/${id}/${hash}?expires=${expires}&signature=${signature}`, {
@@ -25,10 +24,10 @@ const VerifyEmailProcessPage = () => {
         });
 
         setStatus('success');
-        setMessage('Email Anda berhasil diverifikasi! Mengalihkan ke dashboard...');
+        setMessage('Email Anda berhasil diverifikasi! Mengalihkan ke halaman utama...');
         
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate('/');
         }, 3000);
 
       } catch (error) {
