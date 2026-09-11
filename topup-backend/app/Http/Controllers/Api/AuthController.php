@@ -131,9 +131,6 @@ class AuthController extends Controller
     }
 
     /**
-     * Kirim ulang link verifikasi email (wajib login).
-     */
-    /**
      * Kirim ulang link verifikasi TANPA perlu login dulu.
      * Dipakai di halaman "Cek Email" dan popup peringatan saat login gagal karena belum verifikasi.
      */
@@ -174,22 +171,28 @@ class AuthController extends Controller
     }
 
     /**
-     * Endpoint yang diklik dari link di email (signed URL, tanpa perlu login).
-     * Setelah verifikasi, redirect ke frontend.
+     * Endpoint yang dipanggil oleh frontend React via Axios saat link email diklik.
+     * Tidak boleh mereturn redirect(), harus return JSON.
      */
     public function verifyEmail(Request $request, $id, $hash)
     {
         $user = User::findOrFail($id);
 
         if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-            return redirect(config('app.frontend_url') . '/auth?verified=0');
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tautan verifikasi tidak valid atau telah dimanipulasi.'
+            ], 403);
         }
 
         if (!$user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
         }
 
-        return redirect(config('app.frontend_url') . '/auth?verified=1');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Email berhasil diverifikasi.'
+        ]);
     }
 
     /**

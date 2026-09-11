@@ -28,7 +28,7 @@ class VerifyEmailNotification extends BaseVerifyEmail implements ShouldQueue
         // 2. Pisahkan query parameter (expires dan signature) dari backend URL
         $query = parse_url($backendUrl, PHP_URL_QUERY);
 
-        // 3. Arahkan ke URL Frontend (React JS) milikmu
+        // 3. Arahkan ke URL Frontend (React JS) 
         // Akan membaca env('FRONTEND_URL'), jika tidak ada maka default ke kansss.my.id
         $frontendUrl = rtrim(env('FRONTEND_URL', 'https://kansss.my.id'), '/');
 

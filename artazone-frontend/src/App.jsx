@@ -6,6 +6,7 @@ import AuthPage from './pages/AuthPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailNoticePage from './pages/VerifyEmailNoticePage';
+import VerifyEmailProcessPage from './pages/VerifyEmailProcessPage';
 import StatusPage from './pages/StatusPage';
 import DashboardPage from './pages/DashboardPage';
 import SettingsPage from './pages/SettingsPage';
@@ -37,6 +38,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/verify-email-notice" element={<VerifyEmailNoticePage />} />
+          <Route path="/verify-email/:id/:hash" element={<VerifyEmailProcessPage />} />
           <Route path="/status/:id" element={<StatusPage />} />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
@@ -46,7 +48,6 @@ function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           
-          {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="/admin/categories" element={<AdminRoute><AdminCategory /></AdminRoute>} />
           <Route path="/admin/products" element={<AdminRoute><AdminProduct /></AdminRoute>} />
