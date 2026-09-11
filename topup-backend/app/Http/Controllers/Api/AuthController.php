@@ -184,11 +184,9 @@ class AuthController extends Controller
         $resetUrl = config('app.frontend_url') . '/reset-password?email=' . urlencode($user->email) . '&token=' . $token;
 
         try {
-            \Illuminate\Support\Facades\Mail::send('emails.reset-password', ['url' => $resetUrl, 'name' => $user->name], function ($message) use ($user) {
-                $message->to($user->email)->subject('Reset Password - ArTa Zone');
-            });
+            \Illuminate\Support\Facades\Mail::to($user->email)->queue(new \App\Mail\ResetPasswordMail($resetUrl, $user->name));
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('Gagal kirim email reset password: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Gagal antre email reset password: ' . $e->getMessage());
         }
 
         return response()->json([

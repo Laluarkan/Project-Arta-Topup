@@ -3,12 +3,15 @@
 namespace App\Notifications;
 
 use Illuminate\Auth\Notifications\VerifyEmail as BaseVerifyEmail;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
 
-class VerifyEmailNotification extends BaseVerifyEmail
+class VerifyEmailNotification extends BaseVerifyEmail implements ShouldQueue
 {
+    use Queueable;
     protected function verificationUrl($notifiable)
     {
         // Buat signed URL yang mengarah ke endpoint backend seperti biasa...
