@@ -3,6 +3,8 @@ import LandingPage from './pages/LandingPage';
 import CategoryPage from './pages/CategoryPage';
 import DetailPage from './pages/DetailPage';
 import AuthPage from './pages/AuthPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import StatusPage from './pages/StatusPage';
 import DashboardPage from './pages/DashboardPage';
 import SettingsPage from './pages/SettingsPage';
@@ -31,6 +33,8 @@ function App() {
           <Route path="/categories" element={<CategoryPage />} />
           <Route path="/detail/:id" element={<DetailPage />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/status/:id" element={<StatusPage />} />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />

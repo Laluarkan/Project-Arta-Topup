@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Traits\UsesCustomId;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, UsesCustomId, HasRoles;
 
@@ -25,6 +26,9 @@ class User extends Authenticatable
         'referral_code',
         'referred_by',
         'is_active',
+        'terms_accepted_at',
+        'last_login_at',
+        'last_login_ip',
     ];
 
     protected $hidden = [
@@ -34,6 +38,8 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'terms_accepted_at' => 'datetime',
+        'last_login_at' => 'datetime',
         'password' => 'hashed',
         'is_active' => 'boolean',
     ];
@@ -41,6 +47,11 @@ class User extends Authenticatable
     public function walletTransactions()
     {
         return $this->hasMany(WalletTransaction::class);
+    }
+
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new \App\Notifications\VerifyEmailNotification());
     }
 
     public function transactions()

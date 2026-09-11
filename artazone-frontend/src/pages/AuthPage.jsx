@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 
 // Komponen Popup Kecil
@@ -29,18 +30,31 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [referralCode, setReferralCode] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
-  // State untuk Popup
+
   const [popup, setPopup] = useState({ isOpen: false, message: '', type: 'error' });
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Tangani hasil klik link verifikasi email (?verified=1 / ?verified=0)
+  useEffect(() => {
+    const verified = searchParams.get('verified');
+    if (verified === '1') {
+      setPopup({ isOpen: true, message: 'Email berhasil diverifikasi! Silakan login.', type: 'success' });
+    } else if (verified === '0') {
+      setPopup({ isOpen: true, message: 'Link verifikasi tidak valid atau sudah kedaluwarsa.', type: 'error' });
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validasi Manual untuk menghindari tooltip bawaan browser
-    if (!email || !password || (!isLogin && !name)) {
+
+    if (!email || !password || (!isLogin && (!name || !phone))) {
       setPopup({ isOpen: true, message: 'Harap isi semua kolom yang diperlukan.', type: 'error' });
       return;
     }
@@ -50,23 +64,52 @@ export default function AuthPage() {
       return;
     }
 
+    if (!isLogin) {
+      if (password !== passwordConfirmation) {
+        setPopup({ isOpen: true, message: 'Konfirmasi password tidak cocok.', type: 'error' });
+        return;
+      }
+      if (!termsAccepted) {
+        setPopup({ isOpen: true, message: 'Anda harus menyetujui Syarat & Ketentuan terlebih dahulu.', type: 'error' });
+        return;
+      }
+    }
+
     setIsLoading(true);
     const endpoint = isLogin ? '/api/login' : '/api/register';
-    const payload = isLogin ? { email, password } : { name, email, password };
+    const payload = isLogin
+      ? { email, password }
+      : {
+          name,
+          email,
+          phone,
+          password,
+          password_confirmation: passwordConfirmation,
+          terms_accepted: termsAccepted,
+          referral_code: referralCode || null
+        };
 
     try {
       const res = await axios.post(`https://artazone-api.onrender.com${endpoint}`, payload);
-      
+
       if (res.data.status === 'success') {
         localStorage.setItem('token', res.data.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.data.user));
-        navigate('/');
+
+        if (!isLogin) {
+          setPopup({ isOpen: true, message: 'Akun berhasil dibuat! Cek email untuk verifikasi, lalu langsung bisa dipakai belanja.', type: 'success' });
+          setTimeout(() => navigate('/'), 1800);
+        } else {
+          navigate('/');
+        }
       }
     } catch (err) {
-      setPopup({ 
-        isOpen: true, 
-        message: err.response?.data?.message || 'Terjadi kesalahan pada server.', 
-        type: 'error' 
+      const errors = err.response?.data?.errors;
+      const firstError = errors ? Object.values(errors)[0][0] : null;
+      setPopup({
+        isOpen: true,
+        message: firstError || err.response?.data?.message || 'Terjadi kesalahan pada server.',
+        type: 'error'
       });
     } finally {
       setIsLoading(false);
@@ -75,11 +118,11 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-white">
-      <PopupModal 
-        isOpen={popup.isOpen} 
-        message={popup.message} 
-        type={popup.type} 
-        onClose={() => setPopup({ ...popup, isOpen: false })} 
+      <PopupModal
+        isOpen={popup.isOpen}
+        message={popup.message}
+        type={popup.type}
+        onClose={() => setPopup({ ...popup, isOpen: false })}
       />
 
       <div className="hidden lg:flex flex-col justify-between bg-ink text-white p-12">
@@ -105,16 +148,16 @@ export default function AuthPage() {
 
         <form onSubmit={handleSubmit} className="card p-7 w-full max-w-sm">
           <div className="flex gap-2 mb-6">
-            <button 
-              type="button" 
-              onClick={() => setIsLogin(true)} 
+            <button
+              type="button"
+              onClick={() => setIsLogin(true)}
               className={`flex-1 py-2 text-xs transition-colors ${isLogin ? 'btn-primary' : 'btn-ghost'}`}
             >
               Masuk
             </button>
-            <button 
-              type="button" 
-              onClick={() => setIsLogin(false)} 
+            <button
+              type="button"
+              onClick={() => setIsLogin(false)}
               className={`flex-1 py-2 text-xs transition-colors ${!isLogin ? 'btn-primary' : 'btn-ghost'}`}
             >
               Daftar
@@ -123,27 +166,73 @@ export default function AuthPage() {
 
           <div className="space-y-3">
             {!isLogin && (
-              <input 
-                className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600" 
-                placeholder="Nama Lengkap" 
-                value={name} onChange={(e) => setName(e.target.value)}
-              />
+              <>
+                <input
+                  className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
+                  placeholder="Nama Lengkap"
+                  value={name} onChange={(e) => setName(e.target.value)}
+                />
+                <input
+                  className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
+                  placeholder="Nomor HP/WhatsApp"
+                  type="tel"
+                  value={phone} onChange={(e) => setPhone(e.target.value)}
+                />
+              </>
             )}
-            <input 
-              className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600" 
-              placeholder="Email" 
+            <input
+              className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
+              placeholder="Email"
               type="email"
               value={email} onChange={(e) => setEmail(e.target.value)}
             />
-            <input 
-              className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600" 
-              placeholder="Password" 
+            <input
+              className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
+              placeholder="Password"
               type="password"
               value={password} onChange={(e) => setPassword(e.target.value)}
             />
 
-            <button 
-              type="submit" 
+            {!isLogin && (
+              <>
+                <input
+                  className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
+                  placeholder="Konfirmasi Password"
+                  type="password"
+                  value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)}
+                />
+                <input
+                  className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
+                  placeholder="Kode Referral (opsional)"
+                  value={referralCode} onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                />
+                <label className="flex items-start gap-2 text-xs text-ink/60 pt-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                  />
+                  <span>
+                    Saya setuju dengan{' '}
+                    <Link to="/terms" target="_blank" className="text-violet-600 underline">Syarat & Ketentuan</Link>
+                    {' '}dan{' '}
+                    <Link to="/privacy" target="_blank" className="text-violet-600 underline">Kebijakan Privasi</Link>
+                  </span>
+                </label>
+              </>
+            )}
+
+            {isLogin && (
+              <div className="text-right">
+                <Link to="/forgot-password" className="text-xs text-violet-600 hover:underline">
+                  Lupa password?
+                </Link>
+              </div>
+            )}
+
+            <button
+              type="submit"
               disabled={isLoading}
               className={`w-full py-3 text-sm mt-2 ${isLoading ? 'btn-ghost opacity-50 cursor-not-allowed' : 'btn-accent'}`}
             >
