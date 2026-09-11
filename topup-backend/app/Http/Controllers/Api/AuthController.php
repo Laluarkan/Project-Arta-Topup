@@ -92,6 +92,15 @@ class AuthController extends Controller
             ], 403);
         }
 
+        if (!$user->hasVerifiedEmail()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Email Anda belum diverifikasi. Silakan cek inbox Anda, atau klik tombol kirim ulang di bawah.',
+                'email_verified' => false,
+                'data' => ['email' => $user->email]
+            ], 403);
+        }
+
         $user->update([
             'last_login_at' => now(),
             'last_login_ip' => $request->ip(),
@@ -124,6 +133,33 @@ class AuthController extends Controller
     /**
      * Kirim ulang link verifikasi email (wajib login).
      */
+    /**
+     * Kirim ulang link verifikasi TANPA perlu login dulu.
+     * Dipakai di halaman "Cek Email" dan popup peringatan saat login gagal karena belum verifikasi.
+     */
+    public function resendVerificationPublic(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $user = User::where('email', $request->email)->first();
+
+        // Balas sukses generik walau user tidak ditemukan (konsisten dengan forgotPassword,
+        // mencegah orang menebak-nebak email mana yang terdaftar).
+        if (!$user || $user->hasVerifiedEmail()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Kalau email terdaftar dan belum terverifikasi, link baru sudah dikirim.'
+            ]);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Kalau email terdaftar dan belum terverifikasi, link baru sudah dikirim.'
+        ]);
+    }
+
     public function resendVerificationEmail(Request $request)
     {
         $user = $request->user();

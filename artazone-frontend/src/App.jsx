@@ -5,6 +5,7 @@ import DetailPage from './pages/DetailPage';
 import AuthPage from './pages/AuthPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import VerifyEmailNoticePage from './pages/VerifyEmailNoticePage';
 import StatusPage from './pages/StatusPage';
 import DashboardPage from './pages/DashboardPage';
 import SettingsPage from './pages/SettingsPage';
@@ -35,6 +36,7 @@ function App() {
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email-notice" element={<VerifyEmailNoticePage />} />
           <Route path="/status/:id" element={<StatusPage />} />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />

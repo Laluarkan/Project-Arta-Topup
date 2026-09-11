@@ -1,10 +1,11 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 
 // Komponen Popup Kecil
-const PopupModal = ({ isOpen, message, onClose, type = 'error' }) => {
+const PopupModal = ({ isOpen, message, onClose, type = 'error', extraAction }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
@@ -18,7 +19,8 @@ const PopupModal = ({ isOpen, message, onClose, type = 'error' }) => {
           {type === 'error' ? 'Peringatan' : 'Berhasil'}
         </h3>
         <p className="text-sm text-ink/70 mb-6">{message}</p>
-        <button onClick={onClose} className="btn-primary w-full py-2.5 text-sm">
+        {extraAction}
+        <button onClick={onClose} className="btn-ghost w-full py-2.5 text-sm">
           Tutup
         </button>
       </div>
@@ -38,6 +40,8 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const [popup, setPopup] = useState({ isOpen: false, message: '', type: 'error' });
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [isResending, setIsResending] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -93,20 +97,32 @@ export default function AuthPage() {
       const res = await axios.post(`https://artazone-api.onrender.com${endpoint}`, payload, { timeout: 20000 });
 
       if (res.data.status === 'success') {
+        if (!isLogin) {
+          // Registrasi berhasil: JANGAN auto-login. Arahkan ke halaman "cek email" dulu.
+          navigate(`/verify-email-notice?email=${encodeURIComponent(email)}`);
+          return;
+        }
+
         localStorage.setItem('token', res.data.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.data.user));
-
-        if (!isLogin) {
-          setPopup({ isOpen: true, message: 'Akun berhasil dibuat! Cek email untuk verifikasi, lalu langsung bisa dipakai belanja.', type: 'success' });
-          setTimeout(() => navigate('/'), 1800);
-        } else {
-          navigate('/');
-        }
+        navigate('/');
       }
     } catch (err) {
       const errors = err.response?.data?.errors;
       const firstError = errors ? Object.values(errors)[0][0] : null;
       const timeoutMessage = err.code === 'ECONNABORTED' ? 'Server terlalu lama merespons. Coba lagi beberapa saat lagi.' : null;
+
+      // Kasus khusus: login ditolak karena email belum diverifikasi
+      if (err.response?.data?.email_verified === false) {
+        setUnverifiedEmail(err.response.data.data?.email || email);
+        setPopup({
+          isOpen: true,
+          message: err.response.data.message,
+          type: 'error'
+        });
+        return;
+      }
+
       setPopup({
         isOpen: true,
         message: timeoutMessage || firstError || err.response?.data?.message || 'Terjadi kesalahan pada server.',
@@ -117,13 +133,34 @@ export default function AuthPage() {
     }
   };
 
+  const handleResendVerification = async () => {
+    setIsResending(true);
+    try {
+      await axios.post('https://artazone-api.onrender.com/api/email/resend-public', { email: unverifiedEmail });
+      setPopup({ isOpen: true, message: 'Link verifikasi baru sudah dikirim. Cek inbox Anda.', type: 'success' });
+    } catch (err) {
+      setPopup({ isOpen: true, message: 'Gagal mengirim ulang. Coba lagi beberapa saat lagi.', type: 'error' });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-white">
       <PopupModal
         isOpen={popup.isOpen}
         message={popup.message}
         type={popup.type}
-        onClose={() => setPopup({ ...popup, isOpen: false })}
+        onClose={() => { setPopup({ ...popup, isOpen: false }); setUnverifiedEmail(''); }}
+        extraAction={unverifiedEmail && popup.type === 'error' ? (
+          <button
+            onClick={handleResendVerification}
+            disabled={isResending}
+            className={`w-full py-2.5 text-sm mb-2 ${isResending ? 'btn-ghost opacity-50 cursor-not-allowed' : 'btn-accent'}`}
+          >
+            {isResending ? 'Mengirim...' : 'Kirim Ulang Email Verifikasi'}
+          </button>
+        ) : null}
       />
 
       <div className="hidden lg:flex flex-col justify-between bg-ink text-white p-12">
