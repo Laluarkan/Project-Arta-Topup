@@ -1,123 +1,190 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
-use App\Http\Controllers\Api\Admin\CategoryController as AdminCategoryController;
-use App\Http\Controllers\Api\Admin\TransactionController as AdminTransactionController;
-use App\Http\Controllers\Api\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Api\Admin\PromoController as AdminPromoController;
-use App\Http\Controllers\Api\Admin\TicketController as AdminTicketController;
-use App\Http\Controllers\Api\Admin\AuditLogController as AdminAuditLogController;
-use App\Http\Controllers\Api\Admin\SettingController as AdminSettingController;
-use App\Http\Controllers\Api\TransactionController;
-use App\Http\Controllers\Api\MidtransWebhookController;
-use App\Http\Controllers\Api\CatalogController;
-use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\TicketController;
-use App\Http\Controllers\Api\DigiflazzWebhookController;
-use App\Http\Controllers\Api\PromoController;
-use App\Http\Controllers\Api\DigiflazzController;
-use App\Http\Controllers\Api\GameInquiryController;
-use App\Http\Controllers\Api\PakasirWebhookController;
-use App\Services\DigiflazzService;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Facade;
+use Illuminate\Support\ServiceProvider;
 
-Route::middleware('throttle:5,1')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-});
+return [
 
-Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
-    ->middleware('signed')
-    ->name('verification.verify');
+    /*
+    |--------------------------------------------------------------------------
+    | Application Name
+    |--------------------------------------------------------------------------
+    |
+    | This value is the name of your application. This value is used when the
+    | framework needs to place the application's name in a notification or
+    | any other location as required by the application or its packages.
+    |
+    */
 
-Route::middleware('throttle:60,1')->group(function () {
-    Route::post('/webhook/midtrans', [MidtransWebhookController::class, 'handleWebhook']);
-    Route::post('/webhook/pakasir', [PakasirWebhookController::class, 'handleWebhook']);
-    Route::post('/webhook/digiflazz', [DigiflazzWebhookController::class, 'handleWebhook']); 
+    'name' => env('APP_NAME', 'Laravel'),
 
-    Route::get('/categories', [CatalogController::class, 'getCategories']);
-    Route::get('/payment-gateways/status', [CatalogController::class, 'getActivePaymentGateways']);
-    Route::get('/products/{category}', [CatalogController::class, 'getProductsByCategory']);
-    Route::get('/trending-games', [CatalogController::class, 'getTrendingGames']);
+    /*
+    |--------------------------------------------------------------------------
+    | Application Environment
+    |--------------------------------------------------------------------------
+    |
+    | This value determines the "environment" your application is currently
+    | running in. This may determine how you prefer to configure various
+    | services the application utilizes. Set this in your ".env" file.
+    |
+    */
 
-    Route::get('/promos', [PromoController::class, 'index']);
-    Route::post('/promos/validate', [PromoController::class, 'validateCode']);
-    
-    Route::post('/check-nickname', [GameInquiryController::class, 'check']);
-});
+    'env' => env('APP_ENV', 'production'),
 
-if (app()->environment('local')) {
-    Route::middleware(['auth:sanctum', 'role:super-admin'])->get('/dev/wipe-and-sync', function () {
-        Schema::disableForeignKeyConstraints();
-        \App\Models\Product::truncate();
-        \App\Models\Category::truncate();
-        \App\Models\Provider::truncate();
-        Schema::enableForeignKeyConstraints();
-        $service = new DigiflazzService();
-        return $service->syncProducts();
-    });
-}
+    /*
+    |--------------------------------------------------------------------------
+    | Application Debug Mode
+    |--------------------------------------------------------------------------
+    |
+    | When your application is in debug mode, detailed error messages with
+    | stack traces will be shown on every error that occurs within your
+    | application. If disabled, a simple generic error page is shown.
+    |
+    */
 
-Route::middleware('throttle:20,1')->group(function () {
-    Route::post('/checkout/midtrans', [TransactionController::class, 'checkoutMidtrans']);
-    Route::post('/checkout/pakasir', [TransactionController::class, 'checkoutPakasir'])->middleware('throttle:10,1');
-    Route::get('/transactions/{trx_id}', [TransactionController::class, 'show']);
-});
+    'debug' => (bool) env('APP_DEBUG', false),
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);
-    
-    Route::get('/user', function (Request $request) {
-        return $request->user()->load('roles');
-    });
+    /*
+    |--------------------------------------------------------------------------
+    | Application URL
+    |--------------------------------------------------------------------------
+    |
+    | This URL is used by the console to properly generate URLs when using
+    | the Artisan command line tool. You should set this to the root of
+    | your application so that it is used when running Artisan tasks.
+    |
+    */
 
-    Route::put('/user/profile', [UserController::class, 'updateProfile']);
-    
-    Route::get('/user/tickets', [TicketController::class, 'index']);
-    Route::post('/user/tickets', [TicketController::class, 'store']);
+    'url' => env('APP_URL', 'http://localhost'),
 
-    Route::get('/user/transactions', [TransactionController::class, 'getUserTransactions']);
-    
-    Route::middleware('throttle:10,1')->post('/checkout/wallet', [TransactionController::class, 'checkoutWallet']);
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
 
-    Route::middleware(['role:super-admin|admin'])->prefix('admin')->group(function () {
-        Route::get('/dashboard', [AdminDashboardController::class, 'index']);
-        
-        Route::get('/categories', [AdminCategoryController::class, 'index']);
-        Route::put('/categories/{id}', [AdminCategoryController::class, 'update']);
-        Route::post('/categories/auto-fetch-logos', [AdminCategoryController::class, 'autoFetchLogos']);
+    'asset_url' => env('ASSET_URL'),
 
-        Route::get('/products', [AdminProductController::class, 'index']);
-        Route::put('/products/{id}', [AdminProductController::class, 'update']);
-        Route::post('/sync-products', [AdminProductController::class, 'syncProducts']);
+    /*
+    |--------------------------------------------------------------------------
+    | Application Timezone
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify the default timezone for your application, which
+    | will be used by the PHP date and date-time functions. We have gone
+    | ahead and set this to a sensible default for you out of the box.
+    |
+    */
 
-        Route::get('/transactions', [AdminTransactionController::class, 'index']);
-        Route::put('/transactions/{id}/status', [AdminTransactionController::class, 'updateStatus']);
-        Route::post('/transactions/{id}/retry', [AdminTransactionController::class, 'retryTopup']);
+    'timezone' => 'UTC',
 
-        Route::get('/users', [AdminUserController::class, 'index']);
-        Route::put('/users/{id}', [AdminUserController::class, 'update']);
+    /*
+    |--------------------------------------------------------------------------
+    | Application Locale Configuration
+    |--------------------------------------------------------------------------
+    |
+    | The application locale determines the default locale that will be used
+    | by the translation service provider. You are free to set this value
+    | to any of the locales which will be supported by the application.
+    |
+    */
 
-        Route::get('/promos', [AdminPromoController::class, 'index']);
-        Route::post('/promos', [AdminPromoController::class, 'store']);
-        Route::put('/promos/{id}', [AdminPromoController::class, 'update']);
-        Route::delete('/promos/{id}', [AdminPromoController::class, 'destroy']);
+    'locale' => 'en',
 
-        Route::get('/tickets', [AdminTicketController::class, 'index']);
-        Route::put('/tickets/{id}/status', [AdminTicketController::class, 'updateStatus']);
+    /*
+    |--------------------------------------------------------------------------
+    | Application Fallback Locale
+    |--------------------------------------------------------------------------
+    |
+    | The fallback locale determines the locale to use when the current one
+    | is not available. You may change the value to correspond to any of
+    | the language folders that are provided through your application.
+    |
+    */
 
-        Route::get('/audit-logs', [AdminAuditLogController::class, 'index']);
+    'fallback_locale' => 'en',
 
-        Route::get('/settings', [AdminSettingController::class, 'index']);
-        Route::post('/settings', [AdminSettingController::class, 'store']);
+    /*
+    |--------------------------------------------------------------------------
+    | Faker Locale
+    |--------------------------------------------------------------------------
+    |
+    | This locale will be used by the Faker PHP library when generating fake
+    | data for your database seeds. For example, this will be used to get
+    | localized telephone numbers, street address information and more.
+    |
+    */
 
-        Route::post('/digiflazz/sync', [DigiflazzController::class, 'sync']);
-    });
-});
+    'faker_locale' => 'en_US',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Encryption Key
+    |--------------------------------------------------------------------------
+    |
+    | This key is used by the Illuminate encrypter service and should be set
+    | to a random, 32 character string, otherwise these encrypted strings
+    | will not be safe. Please do this before deploying an application!
+    |
+    */
+
+    'key' => env('APP_KEY'),
+
+    'cipher' => 'AES-256-CBC',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Maintenance Mode Driver
+    |--------------------------------------------------------------------------
+    |
+    | These configuration options determine the driver used to determine and
+    | manage Laravel's "maintenance mode" status. The "cache" driver will
+    | allow maintenance mode to be controlled across multiple machines.
+    |
+    | Supported drivers: "file", "cache"
+    |
+    */
+
+    'maintenance' => [
+        'driver' => 'file',
+        // 'store' => 'redis',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Autoloaded Service Providers
+    |--------------------------------------------------------------------------
+    |
+    | The service providers listed here will be automatically loaded on the
+    | request to your application. Feel free to add your own services to
+    | this array to grant expanded functionality to your applications.
+    |
+    */
+
+    'providers' => ServiceProvider::defaultProviders()->merge([
+        /*
+         * Package Service Providers...
+         */
+
+        /*
+         * Application Service Providers...
+         */
+        App\Providers\AppServiceProvider::class,
+        App\Providers\AuthServiceProvider::class,
+        // App\Providers\BroadcastServiceProvider::class,
+        App\Providers\EventServiceProvider::class,
+        App\Providers\RouteServiceProvider::class,
+    ])->toArray(),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Class Aliases
+    |--------------------------------------------------------------------------
+    |
+    | This array of class aliases will be registered when this application
+    | is started. However, feel free to register as many as you wish as
+    | the aliases are "lazy" loaded so they don't hinder performance.
+    |
+    */
+
+    'aliases' => Facade::defaultAliases()->merge([
+        // 'Example' => App\Facades\Example::class,
+    ])->toArray(),
+
+];
