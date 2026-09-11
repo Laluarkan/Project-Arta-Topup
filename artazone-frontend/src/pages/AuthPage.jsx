@@ -90,7 +90,7 @@ export default function AuthPage() {
         };
 
     try {
-      const res = await axios.post(`https://artazone-api.onrender.com${endpoint}`, payload);
+      const res = await axios.post(`https://artazone-api.onrender.com${endpoint}`, payload, { timeout: 20000 });
 
       if (res.data.status === 'success') {
         localStorage.setItem('token', res.data.data.token);
@@ -106,9 +106,10 @@ export default function AuthPage() {
     } catch (err) {
       const errors = err.response?.data?.errors;
       const firstError = errors ? Object.values(errors)[0][0] : null;
+      const timeoutMessage = err.code === 'ECONNABORTED' ? 'Server terlalu lama merespons. Coba lagi beberapa saat lagi.' : null;
       setPopup({
         isOpen: true,
-        message: firstError || err.response?.data?.message || 'Terjadi kesalahan pada server.',
+        message: timeoutMessage || firstError || err.response?.data?.message || 'Terjadi kesalahan pada server.',
         type: 'error'
       });
     } finally {
