@@ -14,13 +14,17 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'phone' => 'required|string|max:20',
+            'name' => ['required', 'string', 'max:255', 'regex:/^[\pL\s\.\'\-]+$/u'],
+            'email' => 'required|string|email:rfc,dns|max:255|unique:users',
+            'phone' => ['required', 'string', 'regex:/^[0-9+\-\s]{9,15}$/'],
             'password' => 'required|string|min:8|confirmed',
             'terms_accepted' => 'required|accepted',
-            'referral_code' => 'nullable|string|exists:users,referral_code',
+            'referral_code' => 'nullable|string|max:20|alpha_num|exists:users,referral_code',
         ], [
+            'name.regex' => 'Nama hanya boleh berisi huruf, spasi, titik, apostrof, dan tanda hubung.',
+            'phone.regex' => 'Format nomor HP tidak valid.',
+            'email.email' => 'Format email tidak valid.',
+            'referral_code.alpha_num' => 'Kode referral tidak valid.',
             'terms_accepted.required' => 'Anda harus menyetujui Syarat & Ketentuan.',
             'terms_accepted.accepted' => 'Anda harus menyetujui Syarat & Ketentuan.',
             'referral_code.exists' => 'Kode referral tidak ditemukan.',
@@ -72,8 +76,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
+            'email' => 'required|string|email|max:255',
+            'password' => 'required|string|max:255'
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -136,7 +140,7 @@ class AuthController extends Controller
      */
     public function resendVerificationPublic(Request $request)
     {
-        $request->validate(['email' => 'required|email']);
+        $request->validate(['email' => 'required|email|max:255']);
 
         $user = User::where('email', $request->email)->first();
 
@@ -200,7 +204,7 @@ class AuthController extends Controller
      */
     public function forgotPassword(Request $request)
     {
-        $request->validate(['email' => 'required|email']);
+        $request->validate(['email' => 'required|email|max:255']);
 
         $user = User::where('email', $request->email)->first();
 
