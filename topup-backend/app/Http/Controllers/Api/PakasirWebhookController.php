@@ -37,6 +37,30 @@ class PakasirWebhookController extends Controller
             return response()->json(['message' => 'Verifikasi status gagal'], 202);
         }
 
+        // Cabang khusus top up saldo wallet (bukan transaksi produk game)
+        if (str_starts_with($orderId, 'WTP-')) {
+            $topup = \App\Models\WalletTopup::where('id', $orderId)->first();
+
+            if (!$topup) {
+                Log::error('Pakasir webhook: wallet topup tidak ditemukan', ['order_id' => $orderId]);
+                return response()->json(['message' => 'Topup tidak ditemukan'], 404);
+            }
+
+            if ((float) $topup->amount !== (float) $amount) {
+                Log::critical('Pakasir webhook (topup): nominal tidak cocok!', [
+                    'order_id' => $orderId,
+                    'expected' => $topup->amount,
+                    'received' => $amount,
+                ]);
+                return response()->json(['message' => 'Nominal tidak cocok'], 400);
+            }
+
+            \App\Http\Controllers\Api\WalletController::markTopupPaid($orderId);
+            Log::info("Top up saldo {$orderId} berhasil diproses via Pakasir.");
+
+            return response()->json(['message' => 'OK']);
+        }
+
         $transaction = Transaction::where('trx_id', $orderId)->first();
 
         if (!$transaction) {

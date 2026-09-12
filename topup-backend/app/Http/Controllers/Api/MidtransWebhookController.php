@@ -39,6 +39,25 @@ class MidtransWebhookController extends Controller
             return response()->json(['message' => 'Invalid signature'], 200);
         }
 
+        // Cabang khusus: kalau order_id berawalan WTP-, ini top up SALDO WALLET,
+        // bukan transaksi produk game. Alurnya beda: tidak ada tabel Transaction,
+        // langsung tambah saldo user lewat WalletController::markTopupPaid().
+        if (str_starts_with($orderId, 'WTP-')) {
+            $transactionStatus = $request->transaction_status;
+            $fraudStatus = $request->fraud_status;
+
+            if (($transactionStatus == 'capture' || $transactionStatus == 'settlement') && $fraudStatus != 'challenge') {
+                \App\Http\Controllers\Api\WalletController::markTopupPaid($orderId);
+                Log::info("Top up saldo {$orderId} berhasil diproses via Midtrans.");
+            } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
+                \App\Models\WalletTopup::where('id', $orderId)
+                    ->where('status', 'PENDING')
+                    ->update(['status' => 'REJECTED', 'admin_note' => 'Pembayaran ' . $transactionStatus]);
+            }
+
+            return response()->json(['message' => 'OK'], 200);
+        }
+
         $transaction = Transaction::where('trx_id', $orderId)->first();
 
         if (!$transaction) {

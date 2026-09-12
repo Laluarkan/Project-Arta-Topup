@@ -22,6 +22,8 @@ use App\Http\Controllers\Api\PromoController;
 use App\Http\Controllers\Api\DigiflazzController;
 use App\Http\Controllers\Api\GameInquiryController;
 use App\Http\Controllers\Api\PakasirWebhookController;
+use App\Http\Controllers\Api\WalletController;
+use App\Http\Controllers\Api\Admin\WalletTopupController;
 use App\Services\DigiflazzService;
 use Illuminate\Support\Facades\Schema;
 
@@ -88,8 +90,22 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::middleware('throttle:10,1')->post('/checkout/wallet', [TransactionController::class, 'checkoutWallet']);
 
+    // Wallet: riwayat & top up saldo
+    Route::get('/user/wallet-transactions', [WalletController::class, 'history']);
+    Route::get('/wallet/manual-transfer-info', [WalletController::class, 'manualTransferInfo']);
+    Route::get('/wallet/topup/{id}', [WalletController::class, 'show']);
+    Route::middleware('throttle:10,1')->group(function () {
+        Route::post('/wallet/topup/midtrans', [WalletController::class, 'topupMidtrans']);
+        Route::post('/wallet/topup/pakasir', [WalletController::class, 'topupPakasir']);
+        Route::post('/wallet/topup/manual', [WalletController::class, 'topupManual']);
+    });
+
     Route::middleware(['role:super-admin|admin'])->prefix('admin')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index']);
+
+        Route::get('/wallet-topups', [WalletTopupController::class, 'index']);
+        Route::post('/wallet-topups/{id}/approve', [WalletTopupController::class, 'approve']);
+        Route::post('/wallet-topups/{id}/reject', [WalletTopupController::class, 'reject']);
         
         Route::get('/categories', [AdminCategoryController::class, 'index']);
         Route::put('/categories/{id}', [AdminCategoryController::class, 'update']);

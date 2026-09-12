@@ -11,6 +11,9 @@ chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 # Menjalankan migrasi database otomatis
 php artisan migrate --force
 
+# Buat symlink storage supaya file upload (misal bukti transfer topup) bisa diakses publik
+php artisan storage:link
+
 # Membersihkan dan mengunci cache untuk performa maksimal
 php artisan optimize:clear
 php artisan config:cache
