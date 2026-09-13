@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -13,7 +14,6 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   
   const navigate = useNavigate();
-  const location = useLocation();
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -58,11 +58,6 @@ export default function SettingsPage() {
 
       <div className="flex-1 max-w-6xl w-full mx-auto p-8 grid lg:grid-cols-4 gap-8">
         <UserSidebar />
-
-        <div className="lg:col-span-3">
-          <Link to="/tickets" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/tickets' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Tiket Komplain</Link>
-          <Link to="/settings" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/settings' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Pengaturan Profil</Link>
-        </div>
 
         <div className="lg:col-span-3">
           <h1 className="font-display font-700 text-2xl mb-6">Pengaturan Profil</h1>
