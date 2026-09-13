@@ -5,6 +5,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import UserSidebar from '../components/UserSidebar';
 
 export default function TicketPage() {
   const [user, setUser] = useState(null);
@@ -74,20 +75,10 @@ export default function TicketPage() {
     <div className="flex-1 overflow-y-auto bg-white flex flex-col">
       <Navbar />
 
-      <div className="flex-1 max-w-6xl w-full mx-auto p-8 grid lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-1 space-y-2">
-          <div className="card p-5 mb-6 bg-violet-50 border-violet-200">
-            <p className="text-xs text-ink/50 font-bold mb-1">Total Saldo</p>
-            <p className="font-display font-700 text-2xl text-violet-700">{formatRupiah(user?.balance)}</p>
-          </div>
-          <Link to="/dashboard" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/dashboard' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Dashboard</Link>
-          <Link to="/tickets" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/tickets' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Tiket Komplain</Link>
-          <Link to="/settings" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/settings' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Pengaturan Profil</Link>
-        </div>
-
         <div className="lg:col-span-3">
-          <h1 className="font-display font-700 text-2xl mb-6">Pusat Bantuan & Komplain</h1>
-          
+        <UserSidebar />
+
+          <h1 className="font-display font-700 text-2xl mb-6">Pusat Bantuan & Komplain</h1>          
           <form onSubmit={handleSubmit} className="card p-6 mb-8 bg-violet-50/50">
             <h2 className="font-bold mb-4">Buat Tiket Baru</h2>
             <div className="mb-4">
@@ -133,9 +124,8 @@ export default function TicketPage() {
               </div>
             )}
           </div>
-
-        </div>
-      </div>
+        </div> 
+      <Footer />
     </div>
   );
 }

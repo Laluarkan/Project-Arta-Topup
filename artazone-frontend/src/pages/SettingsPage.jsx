@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import UserSidebar from '../components/UserSidebar';
 
 export default function SettingsPage() {
   const [user, setUser] = useState(null);
@@ -48,7 +49,6 @@ export default function SettingsPage() {
     }
   };
 
-  const formatRupiah = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka || 0);
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-white"><p>Memuat Data...</p></div>;
 
@@ -57,12 +57,9 @@ export default function SettingsPage() {
       <Navbar />
 
       <div className="flex-1 max-w-6xl w-full mx-auto p-8 grid lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-1 space-y-2">
-          <div className="card p-5 mb-6 bg-violet-50 border-violet-200">
-            <p className="text-xs text-ink/50 font-bold mb-1">Total Saldo</p>
-            <p className="font-display font-700 text-2xl text-violet-700">{formatRupiah(user?.balance)}</p>
-          </div>
-          <Link to="/dashboard" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/dashboard' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Dashboard</Link>
+        <UserSidebar />
+
+        <div className="lg:col-span-3">
           <Link to="/tickets" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/tickets' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Tiket Komplain</Link>
           <Link to="/settings" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/settings' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Pengaturan Profil</Link>
         </div>
