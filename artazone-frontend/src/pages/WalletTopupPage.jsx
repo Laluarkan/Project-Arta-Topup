@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import UserSidebar from '../components/UserSidebar';
 
 const QUICK_AMOUNTS = [25000, 50000, 100000, 250000, 500000, 1000000];
 
@@ -14,12 +15,11 @@ export default function WalletTopupPage() {
   const token = localStorage.getItem('token');
 
   const [amount, setAmount] = useState('');
-  const [method, setMethod] = useState('midtrans'); // midtrans | pakasir | manual
+  const [method, setMethod] = useState('midtrans');
   const [activeGateways, setActiveGateways] = useState({ midtrans: true, pakasir: true });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Khusus manual
   const [transferInfo, setTransferInfo] = useState(null);
   const [senderBank, setSenderBank] = useState('');
   const [senderName, setSenderName] = useState('');
@@ -27,7 +27,6 @@ export default function WalletTopupPage() {
   const [proofFile, setProofFile] = useState(null);
   const [manualSubmitted, setManualSubmitted] = useState(false);
 
-  // Khusus pakasir
   const [pakasirPayment, setPakasirPayment] = useState(null);
   const [isPolling, setIsPolling] = useState(false);
 
@@ -40,9 +39,13 @@ export default function WalletTopupPage() {
       .then(res => { if (res.data.status === 'success') setActiveGateways(res.data.data); })
       .catch(() => {});
 
-    axios.get('https://artazone-api.onrender.com/api/wallet/manual-transfer-info')
+    // FIX: endpoint ini wajib auth:sanctum, harus sertakan Bearer token — sebelumnya
+    // tidak disertakan sehingga selalu 401 dan info rekening tidak pernah muncul.
+    axios.get('https://artazone-api.onrender.com/api/wallet/manual-transfer-info', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
       .then(res => { if (res.data.status === 'success') setTransferInfo(res.data.data); })
-      .catch(() => {});
+      .catch((err) => console.error('Gagal ambil info rekening:', err.response?.data || err.message));
   }, [token, navigate]);
 
   const startPollingTopup = (topupId) => {
@@ -141,105 +144,104 @@ export default function WalletTopupPage() {
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
 
-      <div className="flex-1 max-w-xl w-full mx-auto p-8">
-        <h1 className="text-2xl font-display font-700 mb-1">Isi Saldo</h1>
-        <p className="text-sm text-ink/50 mb-6">Top up saldo ArTa Zone untuk checkout lebih cepat tanpa perlu bayar berulang kali.</p>
+      <div className="flex-1 max-w-6xl w-full mx-auto p-8 grid lg:grid-cols-4 gap-8">
+        <UserSidebar />
 
-        {/* STEP 1: Nominal */}
-        <div className="mb-6">
-          <label className="text-xs font-bold text-ink/60 mb-2 block">STEP 1 — NOMINAL</label>
-          <div className="grid grid-cols-3 gap-2 mb-3">
-            {QUICK_AMOUNTS.map(v => (
-              <button
-                key={v}
-                onClick={() => setAmount(String(v))}
-                className={`py-2 text-xs border-2 border-ink rounded-lg font-bold ${String(v) === amount ? 'bg-ink text-white' : 'bg-white text-ink hover:bg-ink/5'}`}
-              >
-                {formatRupiah(v)}
-              </button>
-            ))}
-          </div>
-          <input
-            type="number"
-            placeholder="Atau masukkan nominal lain (min. Rp10.000)"
-            className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-        </div>
+        <div className="lg:col-span-3 max-w-xl">
+          <h1 className="text-2xl font-display font-700 mb-1">Isi Saldo</h1>
+          <p className="text-sm text-ink/50 mb-6">Top up saldo ArTa Zone untuk checkout lebih cepat tanpa perlu bayar berulang kali.</p>
 
-        {/* STEP 2: Metode */}
-        <div className="mb-6">
-          <label className="text-xs font-bold text-ink/60 mb-2 block">STEP 2 — METODE PEMBAYARAN</label>
-          <div className="flex gap-2 flex-wrap">
-            {activeGateways.midtrans && (
-              <button onClick={() => setMethod('midtrans')} className={`px-4 py-2 text-xs rounded-lg border-2 border-ink font-bold ${method === 'midtrans' ? 'bg-ink text-white' : 'bg-white'}`}>
-                QRIS / E-Wallet (Midtrans)
-              </button>
-            )}
-            {activeGateways.pakasir && (
-              <button onClick={() => setMethod('pakasir')} className={`px-4 py-2 text-xs rounded-lg border-2 border-ink font-bold ${method === 'pakasir' ? 'bg-ink text-white' : 'bg-white'}`}>
-                QRIS (Pakasir)
-              </button>
-            )}
-            <button onClick={() => setMethod('manual')} className={`px-4 py-2 text-xs rounded-lg border-2 border-ink font-bold ${method === 'manual' ? 'bg-ink text-white' : 'bg-white'}`}>
-              Transfer Bank Manual
-            </button>
-          </div>
-        </div>
-
-        {error && <p className="text-xs text-red-600 mb-4">{error}</p>}
-
-        {/* Metode otomatis */}
-        {(method === 'midtrans' || method === 'pakasir') && (
-          <button
-            onClick={handleAutomaticTopup}
-            disabled={isLoading}
-            className={`w-full py-3 text-sm ${isLoading ? 'btn-ghost opacity-50 cursor-not-allowed' : 'btn-primary glow'}`}
-          >
-            {isLoading ? 'Memproses...' : `Isi Saldo ${amount ? formatRupiah(amount) : ''}`}
-          </button>
-        )}
-
-        {/* Metode manual */}
-        {method === 'manual' && !manualSubmitted && (
-          <form onSubmit={handleManualSubmit} className="space-y-3">
-            {transferInfo ? (
-              <div className="p-4 bg-violet-50 border-2 border-violet-200 rounded-lg text-sm mb-2">
-                <p className="font-bold text-ink mb-1">Transfer ke rekening ini:</p>
-                <p>{transferInfo.bank_name} — {transferInfo.account_number}</p>
-                <p className="text-ink/60">a.n. {transferInfo.account_name}</p>
-              </div>
-            ) : (
-              <p className="text-xs text-ink/50 mb-2">Info rekening tujuan belum diatur admin. Hubungi CS untuk info transfer.</p>
-            )}
-
-            <input className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm" placeholder="Nama Bank Pengirim (misal: BCA)" value={senderBank} onChange={(e) => setSenderBank(e.target.value)} />
-            <input className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm" placeholder="Nama Pengirim (sesuai rekening)" value={senderName} onChange={(e) => setSenderName(e.target.value)} />
-            <input className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm" placeholder="Nomor Rekening Pengirim" value={senderAccount} onChange={(e) => setSenderAccount(e.target.value)} />
-
-            <div>
-              <label className="text-xs font-bold text-ink/60 mb-1 block">Bukti Transfer (JPG/PNG, maks 5MB)</label>
-              <input type="file" accept="image/jpeg,image/png,image/jpg" onChange={(e) => setProofFile(e.target.files[0])} className="text-xs" />
+          <div className="mb-6">
+            <label className="text-xs font-bold text-ink/60 mb-2 block">STEP 1 — NOMINAL</label>
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              {QUICK_AMOUNTS.map(v => (
+                <button
+                  key={v}
+                  onClick={() => setAmount(String(v))}
+                  className={`py-2 text-xs border-2 border-ink rounded-lg font-bold ${String(v) === amount ? 'bg-ink text-white' : 'bg-white text-ink hover:bg-ink/5'}`}
+                >
+                  {formatRupiah(v)}
+                </button>
+              ))}
             </div>
-
-            <button type="submit" disabled={isLoading} className={`w-full py-3 text-sm mt-2 ${isLoading ? 'btn-ghost opacity-50 cursor-not-allowed' : 'btn-primary glow'}`}>
-              {isLoading ? 'Mengirim...' : 'Kirim Bukti Transfer'}
-            </button>
-          </form>
-        )}
-
-        {manualSubmitted && (
-          <div className="p-5 bg-green-50 border-2 border-green-200 rounded-lg text-center">
-            <p className="text-2xl mb-2">✅</p>
-            <p className="text-sm font-bold text-ink mb-1">Permintaan Terkirim!</p>
-            <p className="text-xs text-ink/60">Saldo akan otomatis ditambahkan setelah admin memverifikasi bukti transfer Anda (biasanya dalam 1x24 jam). Cek Riwayat Saldo untuk update status.</p>
-            <button onClick={() => navigate('/wallet/history')} className="btn-accent px-6 py-2 text-xs mt-4">Lihat Riwayat Saldo</button>
+            <input
+              type="number"
+              placeholder="Atau masukkan nominal lain (min. Rp10.000)"
+              className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
           </div>
-        )}
+
+          <div className="mb-6">
+            <label className="text-xs font-bold text-ink/60 mb-2 block">STEP 2 — METODE PEMBAYARAN</label>
+            <div className="flex gap-2 flex-wrap">
+              {activeGateways.midtrans && (
+                <button onClick={() => setMethod('midtrans')} className={`px-4 py-2 text-xs rounded-lg border-2 border-ink font-bold ${method === 'midtrans' ? 'bg-ink text-white' : 'bg-white'}`}>
+                  QRIS / E-Wallet (Midtrans)
+                </button>
+              )}
+              {activeGateways.pakasir && (
+                <button onClick={() => setMethod('pakasir')} className={`px-4 py-2 text-xs rounded-lg border-2 border-ink font-bold ${method === 'pakasir' ? 'bg-ink text-white' : 'bg-white'}`}>
+                  QRIS (Pakasir)
+                </button>
+              )}
+              <button onClick={() => setMethod('manual')} className={`px-4 py-2 text-xs rounded-lg border-2 border-ink font-bold ${method === 'manual' ? 'bg-ink text-white' : 'bg-white'}`}>
+                Transfer Bank Manual
+              </button>
+            </div>
+          </div>
+
+          {error && <p className="text-xs text-red-600 mb-4">{error}</p>}
+
+          {(method === 'midtrans' || method === 'pakasir') && (
+            <button
+              onClick={handleAutomaticTopup}
+              disabled={isLoading}
+              className={`w-full py-3 text-sm ${isLoading ? 'btn-ghost opacity-50 cursor-not-allowed' : 'btn-primary glow'}`}
+            >
+              {isLoading ? 'Memproses...' : `Isi Saldo ${amount ? formatRupiah(amount) : ''}`}
+            </button>
+          )}
+
+          {method === 'manual' && !manualSubmitted && (
+            <form onSubmit={handleManualSubmit} className="space-y-3">
+              {transferInfo ? (
+                <div className="p-4 bg-violet-50 border-2 border-violet-200 rounded-lg text-sm mb-2">
+                  <p className="font-bold text-ink mb-1">Transfer ke rekening ini:</p>
+                  <p className="text-lg font-bold">{transferInfo.bank_name} — {transferInfo.account_number}</p>
+                  <p className="text-ink/60">a.n. {transferInfo.account_name}</p>
+                </div>
+              ) : (
+                <p className="text-xs text-red-500 mb-2">⚠️ Info rekening tujuan belum diatur admin. Hubungi CS untuk info transfer sebelum melanjutkan.</p>
+              )}
+
+              <input className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm" placeholder="Nama Bank Pengirim (misal: BCA)" value={senderBank} onChange={(e) => setSenderBank(e.target.value)} />
+              <input className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm" placeholder="Nama Pengirim (sesuai rekening)" value={senderName} onChange={(e) => setSenderName(e.target.value)} />
+              <input className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm" placeholder="Nomor Rekening Pengirim" value={senderAccount} onChange={(e) => setSenderAccount(e.target.value)} />
+
+              <div>
+                <label className="text-xs font-bold text-ink/60 mb-1 block">Bukti Transfer (JPG/PNG, maks 5MB)</label>
+                <input type="file" accept="image/jpeg,image/png,image/jpg" onChange={(e) => setProofFile(e.target.files[0])} className="text-xs" />
+              </div>
+
+              <button type="submit" disabled={isLoading} className={`w-full py-3 text-sm mt-2 ${isLoading ? 'btn-ghost opacity-50 cursor-not-allowed' : 'btn-primary glow'}`}>
+                {isLoading ? 'Mengirim...' : 'Kirim Bukti Transfer'}
+              </button>
+            </form>
+          )}
+
+          {manualSubmitted && (
+            <div className="p-5 bg-green-50 border-2 border-green-200 rounded-lg text-center">
+              <p className="text-2xl mb-2">✅</p>
+              <p className="text-sm font-bold text-ink mb-1">Permintaan Terkirim!</p>
+              <p className="text-xs text-ink/60">Saldo akan otomatis ditambahkan setelah admin memverifikasi bukti transfer Anda (biasanya dalam 1x24 jam). Cek Riwayat Saldo untuk update status.</p>
+              <button onClick={() => navigate('/wallet/history')} className="btn-accent px-6 py-2 text-xs mt-4">Lihat Riwayat Saldo</button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Modal QR Pakasir */}
       {pakasirPayment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-xl">

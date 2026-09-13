@@ -12,6 +12,7 @@ export default function AdminSettings() {
     api_mode: 'development'
   });
   const [gateways, setGateways] = useState({ wallet: true, midtrans: true, pakasir: true });
+  const [bankInfo, setBankInfo] = useState({ bank_name: '', account_number: '', account_name: '' });
   const [digiflazzBalance, setDigiflazzBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -36,6 +37,13 @@ export default function AdminSettings() {
           // biarkan default kalau JSON rusak
         }
       }
+      if (data.manual_transfer_info) {
+        try {
+          setBankInfo(JSON.parse(data.manual_transfer_info));
+        } catch (e) {
+          // biarkan default kalau JSON rusak
+        }
+      }
     })
     .catch(err => console.error("Gagal memuat pengaturan:", err))
     .finally(() => setIsLoading(false));
@@ -49,7 +57,8 @@ export default function AdminSettings() {
         { key: 'margin', value: formData.margin },
         { key: 'maintenance', value: formData.maintenance ? '1' : '0' },
         { key: 'api_mode', value: formData.api_mode },
-        { key: 'active_payment_gateways', value: JSON.stringify(gateways) }
+        { key: 'active_payment_gateways', value: JSON.stringify(gateways) },
+        { key: 'manual_transfer_info', value: JSON.stringify(bankInfo) }
       ]
     };
 
@@ -229,6 +238,47 @@ export default function AdminSettings() {
             {Object.values(gateways).every(v => !v) && (
               <div className="p-3 bg-red-100 border-2 border-red-300 border-dashed rounded-lg text-red-800 text-xs font-bold mt-4">
                 ⚠️ Semua metode pembayaran nonaktif! Pelanggan tidak akan bisa checkout sama sekali.
+              </div>
+            )}
+          </div>
+
+          <div className="card p-6 bg-white border-2 border-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
+            <h2 className="text-sm font-bold text-ink/70 mb-1">Rekening Transfer Manual</h2>
+            <p className="text-xs text-ink/50 mb-4">
+              Rekening ini akan ditampilkan ke user saat memilih metode "Transfer Bank Manual" di halaman Isi Saldo.
+            </p>
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs font-bold text-ink/60 mb-1 block">Nama Bank</label>
+                <input
+                  className="w-full border-2 border-ink rounded-lg px-3 py-2 text-sm"
+                  placeholder="Contoh: BCA / SeaBank"
+                  value={bankInfo.bank_name}
+                  onChange={(e) => setBankInfo({ ...bankInfo, bank_name: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-ink/60 mb-1 block">Nomor Rekening</label>
+                <input
+                  className="w-full border-2 border-ink rounded-lg px-3 py-2 text-sm"
+                  placeholder="Contoh: 1234567890"
+                  value={bankInfo.account_number}
+                  onChange={(e) => setBankInfo({ ...bankInfo, account_number: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-ink/60 mb-1 block">Nama Pemilik Rekening</label>
+                <input
+                  className="w-full border-2 border-ink rounded-lg px-3 py-2 text-sm"
+                  placeholder="Sesuai nama di buku rekening"
+                  value={bankInfo.account_name}
+                  onChange={(e) => setBankInfo({ ...bankInfo, account_name: e.target.value })}
+                />
+              </div>
+            </div>
+            {(!bankInfo.bank_name || !bankInfo.account_number || !bankInfo.account_name) && (
+              <div className="p-3 bg-yellow-100 border-2 border-yellow-300 border-dashed rounded-lg text-yellow-800 text-xs font-bold mt-4">
+                ⚠️ Rekening belum lengkap diisi — user tidak akan bisa lihat info transfer di halaman Isi Saldo.
               </div>
             )}
           </div>

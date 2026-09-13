@@ -1,9 +1,11 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import html2canvas from 'html2canvas';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import UserSidebar from '../components/UserSidebar';
 
 export default function DashboardPage() {
   const [user, setUser] = useState(null);
@@ -160,17 +162,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="flex-1 max-w-6xl w-full mx-auto p-8 grid lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-1 space-y-2">
-          <div className="card p-5 mb-6 bg-violet-50 border-violet-200">
-            <p className="text-xs text-ink/50 font-bold mb-1">Total Saldo</p>
-            <p className="font-display font-700 text-2xl text-violet-700">{formatRupiah(user?.balance)}</p>
-            <button onClick={() => navigate('/wallet/topup')} className="btn-accent w-full py-2 text-xs mt-3">+ Isi Saldo</button>
-          </div>
-          <Link to="/dashboard" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/dashboard' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Dashboard</Link>
-          <Link to="/wallet/history" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/wallet/history' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Riwayat Saldo</Link>
-          <Link to="/tickets" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/tickets' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Tiket Komplain</Link>
-          <Link to="/settings" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/settings' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Pengaturan Profil</Link>
-        </div>
+        <UserSidebar />
 
         <div className="lg:col-span-3">
           <div className="mb-8">
