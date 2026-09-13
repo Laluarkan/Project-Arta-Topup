@@ -1,0 +1,17 @@
+# ArTa Zone
+
+> ArTa Zone adalah platform top up game dan PPOB (pulsa, token PLN, dan tagihan lainnya) yang instan, aman, dan terpercaya, buka 24 jam nonstop.
+
+ArTa Zone melayani pengisian diamond, UC, dan voucher untuk game-game populer, serta pembayaran PPOB (pulsa, data, token PLN, dan layanan lainnya), dengan proses otomatis dalam hitungan detik.
+
+## Halaman Utama
+
+- [Beranda](https://kansss.my.id/): Ringkasan layanan, produk trending, dan kategori populer.
+- [Kategori Produk](https://kansss.my.id/categories): Daftar lengkap semua kategori game dan PPOB yang tersedia.
+- [Promo](https://kansss.my.id/promo): Voucher dan promo top up yang sedang berjalan.
+
+## Bantuan & Kebijakan
+
+- [Pusat Bantuan](https://kansss.my.id/help): Panduan penggunaan dan FAQ.
+- [Syarat & Ketentuan](https://kansss.my.id/terms): Ketentuan penggunaan layanan.
+- [Kebijakan Privasi](https://kansss.my.id/privacy): Kebijakan privasi dan penggunaan data pengguna.

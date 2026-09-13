@@ -1,4 +1,4 @@
-/* Font sudah di-load lewat <link> di index.html (lebih cepat, hindari waterfall @import) */
+/* Font di-self-host lewat @fontsource (di-import di main.jsx), bukan lagi lewat <link> ke Google Fonts */
 
 @tailwind base;
 @tailwind components;

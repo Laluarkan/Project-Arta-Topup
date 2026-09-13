@@ -66,7 +66,7 @@ export default function LandingPage() {
                 <Link to={`/detail/${game.id}`} key={game.id} className="card-sm p-2 md:p-3 text-center cursor-pointer hover:-translate-y-1 transition group">
                   <div className={`w-full h-12 md:h-14 rounded-lg mb-2 border border-ink/10 flex items-center justify-center overflow-hidden ${index % 2 === 0 ? 'bg-violet-100' : 'bg-gold-100'}`}>
                     {game.icon ? (
-                      <img src={resolveIconUrl(game.icon)} alt={game.name} className="w-full h-full object-cover" loading="lazy" />
+                      <img src={resolveIconUrl(game.icon, 130)} alt={game.name} className="w-full h-full object-cover" loading="lazy" width="130" height="130" />
                     ) : (
                       <span className="font-bold text-ink/30 text-lg md:text-xl group-hover:text-ink/60">
                         {game.name.substring(0,2).toUpperCase()}
@@ -95,7 +95,7 @@ export default function LandingPage() {
               <Link to={`/detail/${category.id}`} key={category.id} className="card-sm p-2 md:p-3 text-center hover:-translate-y-1 transition cursor-pointer group flex flex-col items-center justify-start">
                 <div className={`w-full aspect-square rounded-lg mb-2 border border-ink/10 flex items-center justify-center overflow-hidden ${index % 2 === 0 ? 'bg-violet-100' : 'bg-gold-100'}`}>
                   {category.icon ? (
-                    <img src={resolveIconUrl(category.icon)} alt={category.name} className="w-full h-full object-cover" loading="lazy" />
+                    <img src={resolveIconUrl(category.icon, 130)} alt={category.name} className="w-full h-full object-cover" loading="lazy" width="130" height="130" />
                   ) : (
                     <span className="font-bold text-ink/30 text-xl md:text-2xl group-hover:text-ink/60">
                       {category.name.substring(0,2).toUpperCase()}

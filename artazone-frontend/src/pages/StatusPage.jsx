@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import html2canvas from 'html2canvas';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -36,6 +35,7 @@ export default function StatusPage() {
     if (receiptRef.current) {
       setIsDownloading(true);
       try {
+        const { default: html2canvas } = await import('html2canvas');
         const canvas = await html2canvas(receiptRef.current, {
           scale: 2,
           backgroundColor: '#ffffff'
