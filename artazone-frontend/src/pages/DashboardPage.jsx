@@ -164,9 +164,10 @@ export default function DashboardPage() {
           <div className="card p-5 mb-6 bg-violet-50 border-violet-200">
             <p className="text-xs text-ink/50 font-bold mb-1">Total Saldo</p>
             <p className="font-display font-700 text-2xl text-violet-700">{formatRupiah(user?.balance)}</p>
-            <button className="btn-accent w-full py-2 text-xs mt-3">+ Isi Saldo</button>
+            <button onClick={() => navigate('/wallet/topup')} className="btn-accent w-full py-2 text-xs mt-3">+ Isi Saldo</button>
           </div>
           <Link to="/dashboard" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/dashboard' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Dashboard</Link>
+          <Link to="/wallet/history" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/wallet/history' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Riwayat Saldo</Link>
           <Link to="/tickets" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/tickets' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Tiket Komplain</Link>
           <Link to="/settings" className={`block w-full text-left px-4 py-3 text-sm font-bold rounded-lg ${location.pathname === '/settings' ? 'bg-ink text-white' : 'text-ink/60 hover:bg-ink/5'}`}>Pengaturan Profil</Link>
         </div>

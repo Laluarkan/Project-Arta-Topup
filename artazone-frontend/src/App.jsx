@@ -6,6 +6,9 @@ import AuthPage from './pages/AuthPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailNoticePage from './pages/VerifyEmailNoticePage';
+import WalletTopupPage from './pages/WalletTopupPage';
+import WalletHistoryPage from './pages/WalletHistoryPage';
+import AdminWalletTopup from './pages/admin/AdminWalletTopup';
 import VerifyEmailProcessPage from './pages/VerifyEmailProcessPage';
 import StatusPage from './pages/StatusPage';
 import DashboardPage from './pages/DashboardPage';
@@ -38,6 +41,9 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/verify-email-notice" element={<VerifyEmailNoticePage />} />
+          <Route path="/wallet/topup" element={<ProtectedRoute><WalletTopupPage /></ProtectedRoute>} />
+          <Route path="/wallet/history" element={<ProtectedRoute><WalletHistoryPage /></ProtectedRoute>} />
+          <Route path="/admin/wallet-topups" element={<AdminRoute><AdminWalletTopup /></AdminRoute>} />
           <Route path="/verify-email/:id/:hash" element={<VerifyEmailProcessPage />} />
           <Route path="/status/:id" element={<StatusPage />} />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />

@@ -8,6 +8,7 @@ export default function AdminSidebar() {
     { name: 'Managemen Kategory', path: '/admin/categories' },
     { name: 'Manajemen Produk', path: '/admin/products' },
     { name: 'Manajemen Transaksi', path: '/admin/transactions' },
+    { name: 'Review Top Up Manual', path: '/admin/wallet-topups' },
     { name: 'Manajemen User', path: '/admin/users' },
     { name: 'Voucher & Promo', path: '/admin/vouchers' },
     { name: 'Komplain (CS)', path: '/admin/tickets' },
