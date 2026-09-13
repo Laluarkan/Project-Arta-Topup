@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-8 bg-white">
       <div className="card p-7 w-full max-w-sm">
-        <Link to="/auth" className="text-ink/50 hover:text-ink text-sm font-semibold">← Kembali ke Login</Link>
+        <Link to="/auth" className="text-ink/70 hover:text-ink text-sm font-semibold">← Kembali ke Login</Link>
 
         <h2 className="text-xl font-display font-700 mt-4 mb-2">Lupa Password</h2>
 

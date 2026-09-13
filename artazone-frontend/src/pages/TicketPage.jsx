@@ -117,10 +117,10 @@ export default function TicketPage() {
                   </span>
                 </div>
                 <p className="text-sm text-ink/70 mb-3">{ticket.message}</p>
-                <p className="text-xs text-ink/40">{formatDate(ticket.created_at)}</p>
+                <p className="text-xs text-ink/65">{formatDate(ticket.created_at)}</p>
               </div>
             )) : (
-              <div className="card border-dashed p-8 text-center text-ink/40">
+              <div className="card border-dashed p-8 text-center text-ink/65">
                 <p className="text-sm font-semibold">Belum ada tiket komplain.</p>
               </div>
             )}

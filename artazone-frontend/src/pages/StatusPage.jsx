@@ -62,7 +62,7 @@ export default function StatusPage() {
       <div className="flex flex-col min-h-screen bg-violet-50/30 w-full overflow-y-auto">
         <Navbar />
         <main className="flex-1 flex items-center justify-center">
-          <p className="font-bold text-ink/50">Mencari Data Transaksi...</p>
+          <p className="font-bold text-ink/70">Mencari Data Transaksi...</p>
         </main>
       </div>
     );
@@ -127,7 +127,7 @@ export default function StatusPage() {
             <div className="text-center mb-8">
               <div className={`text-5xl mb-3 ${statusConfig.color}`}>{statusConfig.icon}</div>
               <h1 className={`font-display font-700 text-xl mb-1 ${statusConfig.color}`}>{statusConfig.title}</h1>
-              <p className="text-xs font-bold text-ink/50 px-4">{statusConfig.desc}</p>
+              <p className="text-xs font-bold text-ink/70 px-4">{statusConfig.desc}</p>
             </div>
 
             <div className="space-y-4 text-sm font-semibold">
@@ -156,7 +156,7 @@ export default function StatusPage() {
             </div>
 
             <div className="mt-8 pt-4 border-t-2 border-ink border-dashed text-center">
-              <p className="text-[10px] font-bold text-ink/40">Terima kasih telah berbelanja di ArTa Zone!</p>
+              <p className="text-[10px] font-bold text-ink/65">Terima kasih telah berbelanja di ArTa Zone!</p>
             </div>
           </div>
 

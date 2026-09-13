@@ -322,7 +322,7 @@ export default function DetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-xl">
             <h3 className="text-lg font-bold text-ink mb-1">Scan QRIS untuk Bayar</h3>
-            <p className="text-xs text-ink/50 mb-4">Order ID: {pakasirPayment.trxId}</p>
+            <p className="text-xs text-ink/70 mb-4">Order ID: {pakasirPayment.trxId}</p>
 
             <img
               src={`https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(pakasirPayment.paymentNumber)}`}
@@ -333,7 +333,7 @@ export default function DetailPage() {
             <p className="text-2xl font-display font-700 text-violet-700 mb-1">
               {formatRupiah(pakasirPayment.totalPayment)}
             </p>
-            <p className="text-xs text-ink/50 mb-4">
+            <p className="text-xs text-ink/70 mb-4">
               Sudah termasuk biaya admin. Berlaku sampai{' '}
               {pakasirPayment.expiredAt ? new Date(pakasirPayment.expiredAt).toLocaleTimeString('id-ID') : '-'}
             </p>
@@ -359,7 +359,7 @@ export default function DetailPage() {
       )}
 
       <div className="px-4 md:px-8 py-4 border-b-2 border-ink bg-white shrink-0">
-        <span className="text-xs text-ink/40">Beranda / Kategori / </span>
+        <span className="text-xs text-ink/65">Beranda / Kategori / </span>
         <span className="font-bold text-sm">{categoryName}</span>
       </div>
       <div className="px-4 md:px-8 py-6 grid lg:grid-cols-3 gap-8 bg-white flex-1 items-start">
@@ -381,7 +381,7 @@ export default function DetailPage() {
               )}
             </div>
             <h2 className="font-display font-700 text-2xl">{categoryName}</h2>
-            <p className="text-xs text-ink/50 mt-1">Top up resmi, instan, & aman.</p>
+            <p className="text-xs text-ink/70 mt-1">Top up resmi, instan, & aman.</p>
             <div className="flex gap-2 mt-4">
               <span className="badge">Instan</span>
               <span className="badge-outline">Buka 24 Jam</span>
@@ -389,8 +389,8 @@ export default function DetailPage() {
           </div>
         </div>
         <div className="lg:col-span-2 card p-5 md:p-6 h-fit">
-          <p className="font-display font-700 text-sm tracking-widest text-ink/40 mb-1">STEP 1 — DATA AKUN</p>
-          <p className="text-xs text-ink/50 mb-4">{inputConfig.desc}</p>
+          <p className="font-display font-700 text-sm tracking-widest text-ink/65 mb-1">STEP 1 — DATA AKUN</p>
+          <p className="text-xs text-ink/70 mb-4">{inputConfig.desc}</p>
           
           <div className={`grid ${inputConfig.type !== 'single' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-3 mb-3`}>
             <input 
@@ -446,7 +446,7 @@ export default function DetailPage() {
             />
           </div>
 
-          <p className="font-display font-700 text-sm tracking-widest text-ink/40 mb-2">STEP 2 — PILIH NOMINAL</p>
+          <p className="font-display font-700 text-sm tracking-widest text-ink/65 mb-2">STEP 2 — PILIH NOMINAL</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
             {products.length > 0 ? products.map(product => (
               <div 
@@ -464,15 +464,15 @@ export default function DetailPage() {
                 </p>
               </div>
             )) : (
-              <p className="text-sm text-ink/50 col-span-full">Memuat produk...</p>
+              <p className="text-sm text-ink/70 col-span-full">Memuat produk...</p>
             )}
           </div>
-          <p className="font-display font-700 text-sm tracking-widest text-ink/40 mb-2">STEP 3 — KODE VOUCHER</p>
+          <p className="font-display font-700 text-sm tracking-widest text-ink/65 mb-2">STEP 3 — KODE VOUCHER</p>
           {token ? (
             <div className="mb-6">
               <div className="flex flex-col sm:flex-row gap-2">
                 <input 
-                  className="flex-1 border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600 disabled:bg-ink/5 disabled:text-ink/50" 
+                  className="flex-1 border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600 disabled:bg-ink/5 disabled:text-ink/70" 
                   placeholder="Masukkan Kode Voucher" 
                   value={promoCodeInput} 
                   onChange={e => setPromoCodeInput(e.target.value.toUpperCase())}
@@ -503,7 +503,7 @@ export default function DetailPage() {
               </p>
             </div>
           )}
-          <p className="font-display font-700 text-sm tracking-widest text-ink/40 mb-2">STEP 4 — METODE BAYAR</p>
+          <p className="font-display font-700 text-sm tracking-widest text-ink/65 mb-2">STEP 4 — METODE BAYAR</p>
           <div className="flex gap-3 flex-wrap mb-8">
             {token && activeGateways.wallet && (
               <span 
@@ -535,10 +535,10 @@ export default function DetailPage() {
           </div>
           <div className="flex flex-col sm:flex-row justify-between items-center border-t-2 border-ink pt-5 gap-4">
             <div className="text-center sm:text-left w-full sm:w-auto">
-              <p className="text-xs font-bold text-ink/50">Total Bayar</p>
+              <p className="text-xs font-bold text-ink/70">Total Bayar</p>
               {appliedPromo && selectedProduct ? (
                 <div className="flex items-center gap-3 justify-center sm:justify-start mt-1">
-                  <p className="text-sm font-bold text-ink/40 line-through decoration-red-500 decoration-2">
+                  <p className="text-sm font-bold text-ink/65 line-through decoration-red-500 decoration-2">
                     {formatRupiah(basePrice)}
                   </p>
                   <p className="font-display font-700 text-2xl text-violet-700">

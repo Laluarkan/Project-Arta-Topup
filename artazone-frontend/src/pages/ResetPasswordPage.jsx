@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen flex items-center justify-center p-8 bg-white">
       <div className="card p-7 w-full max-w-sm">
         <h2 className="text-xl font-display font-700 mb-1">Buat Password Baru</h2>
-        <p className="text-xs text-ink/50 mb-4">Untuk akun: {email}</p>
+        <p className="text-xs text-ink/70 mb-4">Untuk akun: {email}</p>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <input

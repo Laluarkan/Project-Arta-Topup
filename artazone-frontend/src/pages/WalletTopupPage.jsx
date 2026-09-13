@@ -149,7 +149,7 @@ export default function WalletTopupPage() {
 
         <div className="lg:col-span-3 max-w-xl">
           <h1 className="text-2xl font-display font-700 mb-1">Isi Saldo</h1>
-          <p className="text-sm text-ink/50 mb-6">Top up saldo ArTa Zone untuk checkout lebih cepat tanpa perlu bayar berulang kali.</p>
+          <p className="text-sm text-ink/70 mb-6">Top up saldo ArTa Zone untuk checkout lebih cepat tanpa perlu bayar berulang kali.</p>
 
           <div className="mb-6">
             <label className="text-xs font-bold text-ink/60 mb-2 block">STEP 1 — NOMINAL</label>

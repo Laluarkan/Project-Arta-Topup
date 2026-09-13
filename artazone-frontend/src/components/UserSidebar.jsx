@@ -29,7 +29,7 @@ export default function UserSidebar() {
   return (
     <div className="lg:col-span-1 space-y-2">
       <div className="card p-5 mb-6 bg-violet-50 border-violet-200">
-        <p className="text-xs text-ink/50 font-bold mb-1">Total Saldo</p>
+        <p className="text-xs text-ink/70 font-bold mb-1">Total Saldo</p>
         <p className="font-display font-700 text-2xl text-violet-700">
           {balance === null ? '...' : formatRupiah(balance)}
         </p>

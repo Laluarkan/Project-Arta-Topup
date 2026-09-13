@@ -180,7 +180,7 @@ export default function AuthPage() {
       </div>
 
       <div className="flex items-center justify-center p-8 relative">
-        <Link to="/" className="lg:hidden absolute top-6 left-6 text-ink/50 hover:text-ink text-sm font-semibold">
+        <Link to="/" className="lg:hidden absolute top-6 left-6 text-ink/70 hover:text-ink text-sm font-semibold">
           ← Beranda
         </Link>
 

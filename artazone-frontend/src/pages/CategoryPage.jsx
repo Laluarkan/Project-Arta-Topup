@@ -83,7 +83,7 @@ export default function CategoryPage() {
             <p className="font-bold text-xs text-center line-clamp-2 leading-tight">{category.name}</p>
           </Link>
         )) : (
-          <p className="text-sm text-ink/50 col-span-full">Kategori tidak ditemukan atau sedang memuat...</p>
+          <p className="text-sm text-ink/70 col-span-full">Kategori tidak ditemukan atau sedang memuat...</p>
         )}
       </div>
       <Footer />

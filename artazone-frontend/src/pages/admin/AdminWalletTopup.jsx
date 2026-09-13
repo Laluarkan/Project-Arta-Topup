@@ -75,7 +75,7 @@ export default function AdminWalletTopup() {
       <AdminSidebar />
       <div className="flex-1 p-8 overflow-y-auto">
         <h1 className="text-2xl font-display font-700 mb-1">Riwayat & Review Top Up Saldo</h1>
-        <p className="text-sm text-ink/50 mb-6">Semua metode top up (otomatis & manual) tercatat di sini. Approve/Tolak hanya berlaku untuk transfer manual.</p>
+        <p className="text-sm text-ink/70 mb-6">Semua metode top up (otomatis & manual) tercatat di sini. Approve/Tolak hanya berlaku untuk transfer manual.</p>
 
         <div className="flex flex-wrap gap-4 mb-6 items-center">
           <div className="flex gap-2">
@@ -102,10 +102,10 @@ export default function AdminWalletTopup() {
         </div>
 
         {isLoading ? (
-          <p className="text-sm text-ink/50">Memuat...</p>
+          <p className="text-sm text-ink/70">Memuat...</p>
         ) : topups.length === 0 ? (
           <div className="card p-8 text-center">
-            <p className="text-sm text-ink/50">Tidak ada data dengan filter ini.</p>
+            <p className="text-sm text-ink/70">Tidak ada data dengan filter ini.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -116,12 +116,12 @@ export default function AdminWalletTopup() {
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${STATUS_BADGE[t.status] || 'bg-gray-100'}`}>{t.status}</span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-violet-100 text-violet-700">{METHOD_LABEL[t.payment_method] || t.payment_method}</span>
                   </div>
-                  <p className="text-sm font-bold text-ink">{t.user?.name} <span className="text-ink/40 font-normal">({t.user?.email})</span></p>
+                  <p className="text-sm font-bold text-ink">{t.user?.name} <span className="text-ink/65 font-normal">({t.user?.email})</span></p>
                   <p className="text-xl font-display font-700 text-violet-700 my-1">{formatRupiah(t.amount)}</p>
                   {t.payment_method === 'manual' && (
                     <p className="text-xs text-ink/60">Bank: {t.sender_bank} — a.n {t.sender_name} ({t.sender_account_number})</p>
                   )}
-                  <p className="text-xs text-ink/40">ID: {t.id} • Diajukan: {new Date(t.created_at).toLocaleString('id-ID')}</p>
+                  <p className="text-xs text-ink/65">ID: {t.id} • Diajukan: {new Date(t.created_at).toLocaleString('id-ID')}</p>
                   {t.admin_note && <p className="text-xs text-red-500 mt-1">Catatan: {t.admin_note}</p>}
                 </div>
 
@@ -140,7 +140,7 @@ export default function AdminWalletTopup() {
                       <button onClick={() => setRejectModal({ id: t.id })} className="btn-ghost px-4 py-2 text-xs text-red-600">Tolak</button>
                     </div>
                   ) : t.payment_method !== 'manual' ? (
-                    <p className="text-[10px] text-ink/40 italic">Diproses otomatis via webhook</p>
+                    <p className="text-[10px] text-ink/65 italic">Diproses otomatis via webhook</p>
                   ) : null}
                 </div>
               </div>

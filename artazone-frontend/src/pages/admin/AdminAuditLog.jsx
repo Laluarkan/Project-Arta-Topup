@@ -54,7 +54,7 @@ export default function AdminAuditLog() {
 
           <div className="flex-1 overflow-y-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/50 sticky top-0 z-10">
+              <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/70 sticky top-0 z-10">
                 <tr>
                   <th className="p-4 font-bold">WAKTU</th>
                   <th className="p-4 font-bold">ADMIN</th>
@@ -76,7 +76,7 @@ export default function AdminAuditLog() {
                   </tr>
                 ))}
                 {filteredLogs.length === 0 && (
-                  <tr><td colSpan="4" className="p-8 text-center text-ink/50">Belum ada catatan log aktivitas</td></tr>
+                  <tr><td colSpan="4" className="p-8 text-center text-ink/70">Belum ada catatan log aktivitas</td></tr>
                 )}
               </tbody>
             </table>

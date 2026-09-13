@@ -57,7 +57,7 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-4 gap-4 mb-8">
           <div className="card p-5 bg-white">
-            <p className="text-xs text-ink/50 font-bold mb-1">Omzet Hari Ini</p>
+            <p className="text-xs text-ink/70 font-bold mb-1">Omzet Hari Ini</p>
             <p className="font-display font-700 text-2xl">{formatRupiah(data?.stats?.omzet)}</p>
           </div>
           <div className="card p-5 bg-white border-violet-600">
@@ -65,11 +65,11 @@ export default function AdminDashboard() {
             <p className="font-display font-700 text-2xl text-violet-700">{formatRupiah(data?.stats?.profit)}</p>
           </div>
           <div className="card p-5 bg-white">
-            <p className="text-xs text-ink/50 font-bold mb-1">Transaksi Pending</p>
+            <p className="text-xs text-ink/70 font-bold mb-1">Transaksi Pending</p>
             <p className="font-display font-700 text-2xl">{data?.stats?.pending_trx}</p>
           </div>
           <div className="card p-5 bg-white">
-            <p className="text-xs text-ink/50 font-bold mb-1">User Aktif</p>
+            <p className="text-xs text-ink/70 font-bold mb-1">User Aktif</p>
             <p className="font-display font-700 text-2xl">{data?.stats?.active_users}</p>
           </div>
         </div>
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
             <h2 className="text-sm font-bold text-ink/70 mb-3">Transaksi Terbaru</h2>
             <div className="card p-0 bg-white overflow-hidden">
               <table className="w-full text-left text-sm">
-                <thead className="bg-ink/5 border-b-2 border-ink text-[10px] tracking-widest text-ink/50">
+                <thead className="bg-ink/5 border-b-2 border-ink text-[10px] tracking-widest text-ink/70">
                   <tr>
                     <th className="p-4 font-bold">ID</th>
                     <th className="p-4 font-bold">USER</th>
@@ -100,7 +100,7 @@ export default function AdminDashboard() {
                     </tr>
                   ))}
                   {data?.transactions?.length === 0 && (
-                    <tr><td colSpan="5" className="p-8 text-center text-ink/50">Belum ada transaksi</td></tr>
+                    <tr><td colSpan="5" className="p-8 text-center text-ink/70">Belum ada transaksi</td></tr>
                   )}
                 </tbody>
               </table>
@@ -112,7 +112,7 @@ export default function AdminDashboard() {
               <h2 className="text-sm font-bold text-ink/70 mb-3">Tiket Komplain Baru</h2>
               <div className="card p-0 bg-white overflow-hidden">
                 <table className="w-full text-left text-sm">
-                  <thead className="bg-ink/5 border-b-2 border-ink text-[10px] tracking-widest text-ink/50">
+                  <thead className="bg-ink/5 border-b-2 border-ink text-[10px] tracking-widest text-ink/70">
                     <tr>
                       <th className="p-4 font-bold">USER</th>
                       <th className="p-4 font-bold">SUBJEK</th>
@@ -132,7 +132,7 @@ export default function AdminDashboard() {
                       </tr>
                     ))}
                     {data?.tickets?.length === 0 && (
-                      <tr><td colSpan="3" className="p-8 text-center text-ink/50">Tidak ada tiket baru</td></tr>
+                      <tr><td colSpan="3" className="p-8 text-center text-ink/70">Tidak ada tiket baru</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
               <h2 className="text-sm font-bold text-ink/70 mb-3">Audit Log Terbaru</h2>
               <div className="card p-0 bg-white overflow-hidden">
                 <table className="w-full text-left text-sm">
-                  <thead className="bg-ink/5 border-b-2 border-ink text-[10px] tracking-widest text-ink/50">
+                  <thead className="bg-ink/5 border-b-2 border-ink text-[10px] tracking-widest text-ink/70">
                     <tr>
                       <th className="p-4 font-bold">WAKTU</th>
                       <th className="p-4 font-bold">ADMIN</th>
@@ -161,7 +161,7 @@ export default function AdminDashboard() {
                       </tr>
                     ))}
                     {data?.audit_logs?.length === 0 && (
-                      <tr><td colSpan="3" className="p-8 text-center text-ink/50">Belum ada log</td></tr>
+                      <tr><td colSpan="3" className="p-8 text-center text-ink/70">Belum ada log</td></tr>
                     )}
                   </tbody>
                 </table>

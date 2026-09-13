@@ -155,7 +155,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="mt-8 pt-4 border-t-2 border-ink border-dashed text-center">
-              <p className="text-[10px] font-bold text-ink/40">Terima kasih telah berbelanja di ArTa Zone!</p>
+              <p className="text-[10px] font-bold text-ink/65">Terima kasih telah berbelanja di ArTa Zone!</p>
             </div>
           </div>
         )}
@@ -181,7 +181,7 @@ export default function DashboardPage() {
                       {trx.product?.product_name || 'Produk Tidak Diketahui'}
                     </Link>
                   </div>
-                  <p className="text-xs text-ink/50">
+                  <p className="text-xs text-ink/70">
                     {trx.user_game_id} {trx.zone_id ? `(${trx.zone_id})` : ''} • {formatDate(trx.created_at)}
                   </p>
                 </div>
@@ -199,7 +199,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             )) : (
-              <div className="card border-dashed p-8 text-center text-ink/40">
+              <div className="card border-dashed p-8 text-center text-ink/65">
                 <p className="text-sm font-semibold">Belum ada transaksi.</p>
               </div>
             )}

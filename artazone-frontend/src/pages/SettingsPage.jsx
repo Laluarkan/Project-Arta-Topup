@@ -78,7 +78,7 @@ export default function SettingsPage() {
               <label className="block text-xs font-bold text-ink/70 mb-2">Email (Tidak bisa diubah)</label>
               <input 
                 type="email" 
-                className="w-full border-2 border-ink/20 bg-ink/5 rounded-lg px-4 py-2.5 text-sm outline-none text-ink/50 cursor-not-allowed" 
+                className="w-full border-2 border-ink/20 bg-ink/5 rounded-lg px-4 py-2.5 text-sm outline-none text-ink/70 cursor-not-allowed" 
                 value={user?.email}
                 disabled
               />

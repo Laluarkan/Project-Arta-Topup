@@ -49,7 +49,7 @@ export default function AdminTicket() {
     switch(status) {
       case 'OPEN': return <span className="bg-gold-400 border-2 border-ink text-ink text-[10px] font-bold px-2 py-1 rounded-md">OPEN</span>;
       case 'REPLIED': return <span className="bg-green-100 border-2 border-green-700 text-green-700 text-[10px] font-bold px-2 py-1 rounded-md">DIBALAS</span>;
-      case 'CLOSED': return <span className="bg-ink/10 border-2 border-ink/20 text-ink/50 text-[10px] font-bold px-2 py-1 rounded-md">SELESAI</span>;
+      case 'CLOSED': return <span className="bg-ink/10 border-2 border-ink/20 text-ink/70 text-[10px] font-bold px-2 py-1 rounded-md">SELESAI</span>;
       default: return <span className="bg-ink/10 text-ink text-[10px] font-bold px-2 py-1 rounded-md">{status}</span>;
     }
   };
@@ -95,7 +95,7 @@ export default function AdminTicket() {
 
           <div className="flex-1 overflow-y-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/50 sticky top-0 z-10">
+              <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/70 sticky top-0 z-10">
                 <tr>
                   <th className="p-4 font-bold">WAKTU</th>
                   <th className="p-4 font-bold">USER</th>
@@ -128,7 +128,7 @@ export default function AdminTicket() {
                   </tr>
                 ))}
                 {filteredTickets.length === 0 && (
-                  <tr><td colSpan="5" className="p-8 text-center text-ink/50">Tidak ada tiket komplain ditemukan</td></tr>
+                  <tr><td colSpan="5" className="p-8 text-center text-ink/70">Tidak ada tiket komplain ditemukan</td></tr>
                 )}
               </tbody>
             </table>

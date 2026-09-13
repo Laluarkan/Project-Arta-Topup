@@ -32,9 +32,9 @@ export default function PromoPage() {
 
       <div className="p-8 max-w-5xl mx-auto w-full">
         {isLoading ? (
-          <p className="text-center font-bold text-ink/50 py-10">Memuat promo...</p>
+          <p className="text-center font-bold text-ink/70 py-10">Memuat promo...</p>
         ) : promos.length === 0 ? (
-          <p className="text-center font-bold text-ink/50 py-10">Yahh, saat ini belum ada promo yang tersedia.</p>
+          <p className="text-center font-bold text-ink/70 py-10">Yahh, saat ini belum ada promo yang tersedia.</p>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {promos.map((promo, index) => (
@@ -46,13 +46,13 @@ export default function PromoPage() {
                   <p className="text-sm text-ink/70 mb-6 flex-1">{promo.description || 'Dapatkan potongan harga spesial dari ArTa Zone!'}</p>
                   
                   <div className="mb-4">
-                    <p className="text-xs font-bold text-ink/50 mb-1">Kode Voucher:</p>
+                    <p className="text-xs font-bold text-ink/70 mb-1">Kode Voucher:</p>
                     <div className="border-2 border-ink border-dashed rounded-lg px-4 py-2 text-center font-mono font-bold text-lg bg-ink/5">
                       {promo.code}
                     </div>
                   </div>
                   
-                  <p className="text-xs text-ink/50 text-center font-bold">
+                  <p className="text-xs text-ink/70 text-center font-bold">
                     Berlaku hingga: {formatDate(promo.expired_at)}
                   </p>
                 </div>

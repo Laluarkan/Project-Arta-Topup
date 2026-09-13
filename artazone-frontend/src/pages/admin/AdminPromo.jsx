@@ -116,7 +116,7 @@ export default function AdminPromo() {
         <div className="card p-0 bg-white overflow-hidden flex flex-col min-h-[500px]">
           <div className="flex-1 overflow-y-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/50 sticky top-0 z-10">
+              <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/70 sticky top-0 z-10">
                 <tr>
                   <th className="p-4 font-bold">KODE</th>
                   <th className="p-4 font-bold text-center">TIPE</th>
@@ -132,7 +132,7 @@ export default function AdminPromo() {
                   <tr key={promo.id} className="hover:bg-violet-50/50">
                     <td className="p-4">
                       <p className="font-mono font-bold uppercase">{promo.code}</p>
-                      <p className="text-[10px] text-ink/50 mt-1 truncate max-w-[150px]">{promo.title}</p>
+                      <p className="text-[10px] text-ink/70 mt-1 truncate max-w-[150px]">{promo.title}</p>
                     </td>
                     <td className="p-4 text-center text-xs">{promo.type === 'percent' ? 'Persen' : 'Nominal'}</td>
                     <td className="p-4 font-bold text-violet-700">
@@ -152,7 +152,7 @@ export default function AdminPromo() {
                   </tr>
                 ))}
                 {promos.length === 0 && (
-                  <tr><td colSpan="7" className="p-8 text-center text-ink/50">Belum ada promo.</td></tr>
+                  <tr><td colSpan="7" className="p-8 text-center text-ink/70">Belum ada promo.</td></tr>
                 )}
               </tbody>
             </table>

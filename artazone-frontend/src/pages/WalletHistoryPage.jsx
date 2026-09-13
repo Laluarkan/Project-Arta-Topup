@@ -48,10 +48,10 @@ export default function WalletHistoryPage() {
           </div>
 
           {isLoading ? (
-            <p className="text-sm text-ink/50">Memuat...</p>
+            <p className="text-sm text-ink/70">Memuat...</p>
           ) : items.length === 0 ? (
             <div className="card p-8 text-center">
-              <p className="text-sm text-ink/50">Belum ada riwayat mutasi saldo.</p>
+              <p className="text-sm text-ink/70">Belum ada riwayat mutasi saldo.</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -61,12 +61,12 @@ export default function WalletHistoryPage() {
                   <div key={item.id} className="card p-4 flex items-center justify-between">
                     <div>
                       <p className="text-sm font-bold text-ink">{meta.label}</p>
-                      <p className="text-xs text-ink/50">{new Date(item.created_at).toLocaleString('id-ID')}</p>
-                      <p className="text-xs text-ink/40">Ref: {item.reference_id}</p>
+                      <p className="text-xs text-ink/70">{new Date(item.created_at).toLocaleString('id-ID')}</p>
+                      <p className="text-xs text-ink/65">Ref: {item.reference_id}</p>
                     </div>
                     <div className="text-right">
                       <p className={`text-sm font-bold ${meta.color}`}>{meta.sign}{formatRupiah(item.amount)}</p>
-                      <p className="text-xs text-ink/40">Saldo: {formatRupiah(item.balance_after)}</p>
+                      <p className="text-xs text-ink/65">Saldo: {formatRupiah(item.balance_after)}</p>
                     </div>
                   </div>
                 );
@@ -77,7 +77,7 @@ export default function WalletHistoryPage() {
           {lastPage > 1 && (
             <div className="flex justify-center gap-2 mt-6">
               <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="btn-ghost px-4 py-2 text-xs disabled:opacity-30">← Sebelumnya</button>
-              <span className="text-xs text-ink/50 py-2">Halaman {page} dari {lastPage}</span>
+              <span className="text-xs text-ink/70 py-2">Halaman {page} dari {lastPage}</span>
               <button disabled={page >= lastPage} onClick={() => setPage(p => p + 1)} className="btn-ghost px-4 py-2 text-xs disabled:opacity-30">Selanjutnya →</button>
             </div>
           )}

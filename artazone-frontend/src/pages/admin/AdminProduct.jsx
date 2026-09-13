@@ -153,7 +153,7 @@ export default function AdminProduct() {
 
           <div className="flex-1 overflow-y-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/50 sticky top-0 z-10">
+              <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/70 sticky top-0 z-10">
                 <tr>
                   <th className="p-4 font-bold">SKU</th>
                   <th className="p-4 font-bold">NAMA PRODUK</th>
@@ -173,7 +173,7 @@ export default function AdminProduct() {
                     <td className="p-4 text-ink/60">{formatRupiah(product.provider_price)}</td>
                     <td className="p-4 font-bold text-violet-700">{formatRupiah(product.price_member)}</td>
                     <td className="p-4 text-center">
-                      <span className={`text-[10px] font-bold px-2 py-1 rounded-md border-2 ${product.is_active ? 'bg-gold-400 border-ink' : 'bg-ink/10 border-ink/20 text-ink/50'}`}>
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded-md border-2 ${product.is_active ? 'bg-gold-400 border-ink' : 'bg-ink/10 border-ink/20 text-ink/70'}`}>
                         {product.is_active ? 'AKTIF' : 'NONAKTIF'}
                       </span>
                     </td>
@@ -191,7 +191,7 @@ export default function AdminProduct() {
                   </tr>
                 ))}
                 {filteredProducts.length === 0 && (
-                  <tr><td colSpan="7" className="p-8 text-center text-ink/50 font-bold">Produk tidak ditemukan</td></tr>
+                  <tr><td colSpan="7" className="p-8 text-center text-ink/70 font-bold">Produk tidak ditemukan</td></tr>
                 )}
               </tbody>
             </table>
@@ -203,12 +203,12 @@ export default function AdminProduct() {
         <div className="absolute inset-0 bg-ink/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="card p-6 w-full max-w-md bg-white border-2 border-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
             <h2 className="font-display font-700 text-xl mb-1">Edit Produk (Manual)</h2>
-            <p className="text-xs text-ink/50 font-mono mb-6">{editingProduct.buyer_sku_code} — {editingProduct.product_name}</p>
+            <p className="text-xs text-ink/70 font-mono mb-6">{editingProduct.buyer_sku_code} — {editingProduct.product_name}</p>
             
             <form onSubmit={handleEditSubmit}>
               <div className="mb-4">
                 <label className="block text-xs font-bold text-ink/70 mb-2">Harga Modal (Dari Provider)</label>
-                <input type="text" className="w-full border-2 border-ink/20 bg-ink/5 rounded-lg px-4 py-2 text-sm text-ink/50 cursor-not-allowed font-bold" value={formatRupiah(editingProduct.provider_price)} disabled />
+                <input type="text" className="w-full border-2 border-ink/20 bg-ink/5 rounded-lg px-4 py-2 text-sm text-ink/70 cursor-not-allowed font-bold" value={formatRupiah(editingProduct.provider_price)} disabled />
               </div>
 
               <div className="mb-6">
@@ -220,7 +220,7 @@ export default function AdminProduct() {
                   onChange={(e) => setEditForm({...editForm, price_member: e.target.value})}
                   required
                 />
-                <p className="text-[10px] text-ink/50 mt-1 italic">
+                <p className="text-[10px] text-ink/70 mt-1 italic">
                   *Peringatan: Harga manual ini akan tertimpa otomatis jika Anda menekan tombol "Sinkronisasi API".
                 </p>
               </div>

@@ -93,7 +93,7 @@ export default function HelpPage() {
         {/* KOLOM KANAN: FAQ */}
         <div className="md:col-span-7 lg:col-span-8">
           <h2 className="font-display font-700 text-2xl mb-6 flex items-center gap-3">
-            FAQ <span className="text-sm font-normal text-ink/50 bg-ink/5 px-3 py-1 rounded-full">(Pertanyaan Populer)</span>
+            FAQ <span className="text-sm font-normal text-ink/70 bg-ink/5 px-3 py-1 rounded-full">(Pertanyaan Populer)</span>
           </h2>
           <div className="space-y-4">
             {faqs.map((faq, index) => (

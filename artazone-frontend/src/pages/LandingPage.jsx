@@ -46,7 +46,7 @@ export default function LandingPage() {
             <Link to="/categories" className="btn-primary px-6 py-3 text-sm glow flex items-center justify-center">Mulai Top Up</Link>
             <Link to="/promo" className="btn-ghost px-6 py-3 text-sm flex items-center justify-center">Lihat Promo</Link>
           </div>
-          <div className="flex flex-wrap gap-3 sm:gap-6 mt-6 md:mt-8 text-[10px] sm:text-xs text-ink/50 font-semibold">
+          <div className="flex flex-wrap gap-3 sm:gap-6 mt-6 md:mt-8 text-[10px] sm:text-xs text-ink/70 font-semibold">
             <span>✓ 500rb+ Transaksi</span>
             <span>✓ 24/7 CS Aktif</span>
             <span>✓ Auto Refund</span>
@@ -60,7 +60,7 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-3 gap-2 md:gap-3">
             {isLoadingTrending ? (
-              <p className="text-xs text-ink/50 col-span-3 text-center py-4">Memuat trending...</p>
+              <p className="text-xs text-ink/70 col-span-3 text-center py-4">Memuat trending...</p>
             ) : trendingGames.length > 0 ? (
               trendingGames.map((game, index) => (
                 <Link to={`/detail/${game.id}`} key={game.id} className="card-sm p-2 md:p-3 text-center cursor-pointer hover:-translate-y-1 transition group">
@@ -68,7 +68,7 @@ export default function LandingPage() {
                     {game.icon ? (
                       <img src={resolveIconUrl(game.icon, 130)} alt={game.name} className="w-full h-full object-cover" loading="lazy" width="130" height="130" />
                     ) : (
-                      <span className="font-bold text-ink/30 text-lg md:text-xl group-hover:text-ink/60">
+                      <span className="font-bold text-ink/50 text-lg md:text-xl group-hover:text-ink/60">
                         {game.name.substring(0,2).toUpperCase()}
                       </span>
                     )}
@@ -77,7 +77,7 @@ export default function LandingPage() {
                 </Link>
               ))
             ) : (
-              <p className="text-xs text-ink/50 col-span-3 text-center py-4">Belum ada data trending.</p>
+              <p className="text-xs text-ink/70 col-span-3 text-center py-4">Belum ada data trending.</p>
             )}
           </div>
         </div>
@@ -87,7 +87,7 @@ export default function LandingPage() {
 
       <div className="px-4 md:px-8 py-10 md:py-14 bg-white">
         <h2 className="font-display font-700 text-2xl md:text-3xl mb-1">Kategori Populer</h2>
-        <p className="text-ink/50 text-xs md:text-sm mb-6">Pilih produk, masukkan ID, langsung masuk.</p>
+        <p className="text-ink/70 text-xs md:text-sm mb-6">Pilih produk, masukkan ID, langsung masuk.</p>
         
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
           {categories.length > 0 ? (
@@ -97,7 +97,7 @@ export default function LandingPage() {
                   {category.icon ? (
                     <img src={resolveIconUrl(category.icon, 130)} alt={category.name} className="w-full h-full object-cover" loading="lazy" width="130" height="130" />
                   ) : (
-                    <span className="font-bold text-ink/30 text-xl md:text-2xl group-hover:text-ink/60">
+                    <span className="font-bold text-ink/50 text-xl md:text-2xl group-hover:text-ink/60">
                       {category.name.substring(0,2).toUpperCase()}
                     </span>
                   )}
@@ -106,7 +106,7 @@ export default function LandingPage() {
               </Link>
             ))
           ) : (
-            <p className="text-sm font-semibold text-ink/50 col-span-full">Memuat kategori...</p>
+            <p className="text-sm font-semibold text-ink/70 col-span-full">Memuat kategori...</p>
           )}
           
           {categories.length > 0 && (

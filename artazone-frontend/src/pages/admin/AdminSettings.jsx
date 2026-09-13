@@ -112,7 +112,7 @@ export default function AdminSettings() {
           <div className="card p-6 bg-white border-2 border-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] flex items-center justify-between">
             <div>
               <h2 className="text-sm font-bold text-ink/70">Saldo Digiflazz (Pusat)</h2>
-              <p className="text-xs text-ink/50 mt-1">Sisa saldo modal untuk memproses transaksi otomatis.</p>
+              <p className="text-xs text-ink/70 mt-1">Sisa saldo modal untuk memproses transaksi otomatis.</p>
             </div>
             <div className="text-right">
               <p className="font-display font-700 text-3xl text-violet-700">{formatRupiah(digiflazzBalance)}</p>
@@ -157,15 +157,15 @@ export default function AdminSettings() {
               <h2 className="text-sm font-bold text-ink/70 mb-4">Keamanan Kunci API (.env)</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-ink/50 mb-1 block">Konfigurasi Kunci Ganda</label>
+                  <label className="text-xs font-bold text-ink/70 mb-1 block">Konfigurasi Kunci Ganda</label>
                   <input 
                     type="text" 
                     disabled
-                    className="w-full border-2 border-ink rounded-lg px-4 py-2.5 text-sm outline-none bg-ink/5 text-ink/40 font-mono cursor-not-allowed" 
+                    className="w-full border-2 border-ink rounded-lg px-4 py-2.5 text-sm outline-none bg-ink/5 text-ink/65 font-mono cursor-not-allowed" 
                     value="Diatur melalui file .env server (_DEV / _PROD)"
                   />
                 </div>
-                <p className="text-[10px] text-ink/50 italic leading-relaxed">
+                <p className="text-[10px] text-ink/70 italic leading-relaxed">
                   *Sistem otomatis mendeteksi kunci Midtrans dan Digiflazz berdasarkan mode pilihan di atas tanpa perlu mengubah file kode secara manual.
                 </p>
               </div>
@@ -175,7 +175,7 @@ export default function AdminSettings() {
               <h2 className="text-sm font-bold text-ink/70 mb-4">Margin & Umum</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-ink/50 mb-1 block">Margin Keuntungan Global (%)</label>
+                  <label className="text-xs font-bold text-ink/70 mb-1 block">Margin Keuntungan Global (%)</label>
                   <div className="relative">
                     <input 
                       type="number" 
@@ -185,9 +185,9 @@ export default function AdminSettings() {
                       value={formData.margin}
                       onChange={e => setFormData({...formData, margin: e.target.value})}
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-ink/50">%</span>
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-ink/70">%</span>
                   </div>
-                  <p className="text-[10px] text-ink/50 mt-1 italic">
+                  <p className="text-[10px] text-ink/70 mt-1 italic">
                     *Margin ini akan otomatis ditambahkan ke harga modal saat melakukan tarik data dari Digiflazz.
                   </p>
                 </div>
@@ -211,7 +211,7 @@ export default function AdminSettings() {
 
           <div className="card p-6 bg-white border-2 border-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
             <h2 className="text-sm font-bold text-ink/70 mb-1">Metode Pembayaran Aktif</h2>
-            <p className="text-xs text-ink/50 mb-4">
+            <p className="text-xs text-ink/70 mb-4">
               Matikan salah satu metode kalau sedang gangguan/down — pelanggan otomatis hanya akan melihat metode yang aktif di halaman checkout.
             </p>
             <div className="space-y-3">
@@ -243,7 +243,7 @@ export default function AdminSettings() {
 
           <div className="card p-6 bg-white border-2 border-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
             <h2 className="text-sm font-bold text-ink/70 mb-1">Rekening Transfer Manual</h2>
-            <p className="text-xs text-ink/50 mb-4">
+            <p className="text-xs text-ink/70 mb-4">
               Rekening ini akan ditampilkan ke user saat memilih metode "Transfer Bank Manual" di halaman Isi Saldo.
             </p>
             <div className="grid sm:grid-cols-3 gap-3">

@@ -77,7 +77,7 @@ export default function AdminUser() {
 
           <div className="flex-1 overflow-y-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/50 sticky top-0 z-10">
+              <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/70 sticky top-0 z-10">
                 <tr>
                   <th className="p-4 font-bold">NAMA</th>
                   <th className="p-4 font-bold">EMAIL</th>
@@ -114,7 +114,7 @@ export default function AdminUser() {
                   </tr>
                 ))}
                 {filteredUsers.length === 0 && (
-                  <tr><td colSpan="5" className="p-8 text-center text-ink/50">User tidak ditemukan</td></tr>
+                  <tr><td colSpan="5" className="p-8 text-center text-ink/70">User tidak ditemukan</td></tr>
                 )}
               </tbody>
             </table>
@@ -126,7 +126,7 @@ export default function AdminUser() {
         <div className="absolute inset-0 bg-ink/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="card p-6 w-full max-w-md bg-white border-2 border-ink shadow-brutal">
             <h2 className="font-display font-700 text-xl mb-1">Kelola User</h2>
-            <p className="text-xs text-ink/50 font-mono mb-6">{editingUser.name} — {editingUser.email}</p>
+            <p className="text-xs text-ink/70 font-mono mb-6">{editingUser.name} — {editingUser.email}</p>
             
             <form onSubmit={handleEditSubmit}>
               <div className="mb-4">

@@ -118,7 +118,7 @@ export default function AdminTransaction() {
 
           <div className="flex-1 overflow-y-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/50 sticky top-0 z-10">
+              <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/70 sticky top-0 z-10">
                 <tr>
                   <th className="p-4 font-bold">WAKTU</th>
                   <th className="p-4 font-bold">TRX ID</th>
@@ -161,7 +161,7 @@ export default function AdminTransaction() {
                   </tr>
                 ))}
                 {filteredTransactions.length === 0 && (
-                  <tr><td colSpan="7" className="p-8 text-center text-ink/50">Transaksi tidak ditemukan</td></tr>
+                  <tr><td colSpan="7" className="p-8 text-center text-ink/70">Transaksi tidak ditemukan</td></tr>
                 )}
               </tbody>
             </table>

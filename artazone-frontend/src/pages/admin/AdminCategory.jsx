@@ -151,7 +151,7 @@ export default function AdminCategory() {
 
           <div className="flex-1 overflow-y-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/50 sticky top-0 z-10">
+              <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/70 sticky top-0 z-10">
                 <tr>
                   <th className="p-4 font-bold text-center w-24">LOGO</th>
                   <th className="p-4 font-bold">NAMA KATEGORI</th>
@@ -171,14 +171,14 @@ export default function AdminCategory() {
                           {category.icon ? (
                             <img src={resolveIconUrl(category.icon)} alt={category.name} className="w-full h-full object-cover" loading="lazy" />
                           ) : (
-                            <span className="text-xs text-ink/30 font-bold">?</span>
+                            <span className="text-xs text-ink/70 font-bold">?</span>
                           )}
                         </div>
                       </td>
                       <td className="p-4 font-bold">{category.name}</td>
                       <td className="p-4 text-center">
                         {!category.icon ? (
-                          <span className="text-[10px] text-ink/30">-</span>
+                          <span className="text-[10px] text-ink/70">-</span>
                         ) : isExternal ? (
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700">HOTLINK</span>
                         ) : (
@@ -187,7 +187,7 @@ export default function AdminCategory() {
                       </td>
                       <td className="p-4 text-center font-bold text-violet-700">{category.products_count || 0}</td>
                       <td className="p-4 text-center">
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded-md border-2 ${category.is_active ? 'bg-gold-400 border-ink' : 'bg-ink/10 border-ink/20 text-ink/50'}`}>
+                        <span className={`text-[10px] font-bold px-2 py-1 rounded-md border-2 ${category.is_active ? 'bg-gold-400 border-ink' : 'bg-ink/10 border-ink/20 text-ink/70'}`}>
                           {category.is_active ? 'AKTIF' : 'NONAKTIF'}
                         </span>
                       </td>
@@ -208,7 +208,7 @@ export default function AdminCategory() {
                   );
                 })}
                 {filteredCategories.length === 0 && (
-                  <tr><td colSpan="6" className="p-8 text-center text-ink/50 font-bold">Kategori tidak ditemukan</td></tr>
+                  <tr><td colSpan="6" className="p-8 text-center text-ink/70 font-bold">Kategori tidak ditemukan</td></tr>
                 )}
               </tbody>
             </table>
@@ -220,7 +220,7 @@ export default function AdminCategory() {
         <div className="absolute inset-0 bg-ink/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="card p-6 w-full max-w-md bg-white border-2 border-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]">
             <h2 className="font-display font-700 text-xl mb-1">Edit Kategori</h2>
-            <p className="text-xs text-ink/50 font-mono mb-6">{editingCategory.name}</p>
+            <p className="text-xs text-ink/70 font-mono mb-6">{editingCategory.name}</p>
 
             {/* Upload logo langsung ke server sendiri (best practice, bukan paste URL) */}
             <div className="mb-6">
@@ -232,7 +232,7 @@ export default function AdminCategory() {
                   ) : editingCategory.icon ? (
                     <img src={resolveIconUrl(editingCategory.icon)} alt="Current" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-xs text-ink/30 font-bold">?</span>
+                    <span className="text-xs text-ink/70 font-bold">?</span>
                   )}
                 </div>
                 <div className="flex-1">
@@ -246,7 +246,7 @@ export default function AdminCategory() {
                       if (file) setIconPreview(URL.createObjectURL(file));
                     }}
                   />
-                  <p className="text-[10px] text-ink/50 mt-1">Maks 1MB. PNG/JPG/WEBP/SVG.</p>
+                  <p className="text-[10px] text-ink/70 mt-1">Maks 1MB. PNG/JPG/WEBP/SVG.</p>
                 </div>
               </div>
               <button
