@@ -368,9 +368,11 @@ export default function DetailPage() {
             <div className="w-full h-40 bg-violet-100 rounded-xl mb-4 border-2 border-ink/5 flex items-center justify-center overflow-hidden">
               {categoryIcon ? (
                 <img
-                  src={resolveIconUrl(categoryIcon)}
+                  src={resolveIconUrl(categoryIcon, 400)}
                   alt={categoryName}
                   className="w-full h-full object-cover"
+                  width="400"
+                  height="160"
                 />
               ) : (
                 <span className="font-display font-700 text-3xl text-violet-300">

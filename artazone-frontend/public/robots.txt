@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /wallet/
+Disallow: /auth
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /status/
+
+Sitemap: https://kansss.my.id/sitemap.xml

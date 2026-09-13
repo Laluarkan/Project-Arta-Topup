@@ -2,7 +2,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import html2canvas from 'html2canvas';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import UserSidebar from '../components/UserSidebar';
@@ -56,7 +55,8 @@ export default function DashboardPage() {
     if (downloadingTrx && hiddenReceiptRef.current) {
       const generateReceipt = async () => {
         try {
-          await new Promise(resolve => setTimeout(resolve, 200)); 
+          await new Promise(resolve => setTimeout(resolve, 200));
+          const { default: html2canvas } = await import('html2canvas');
           const canvas = await html2canvas(hiddenReceiptRef.current, {
             scale: 2,
             backgroundColor: '#ffffff'

@@ -72,7 +72,7 @@ export default function CategoryPage() {
             
             <div className="w-full aspect-square bg-violet-100 rounded-lg mb-2 border-2 border-ink group-hover:bg-gold-100 transition-colors flex items-center justify-center overflow-hidden">
               {category.icon ? (
-                <img src={resolveIconUrl(category.icon)} alt={category.name} className="w-full h-full object-cover" loading="lazy" />
+                <img src={resolveIconUrl(category.icon, 130)} alt={category.name} className="w-full h-full object-cover" loading="lazy" width="130" height="130" />
               ) : (
                 <span className="font-bold text-violet-300 text-2xl group-hover:text-gold-400">
                   {category.name.substring(0,2).toUpperCase()}

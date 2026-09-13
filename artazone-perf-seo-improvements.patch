@@ -1,0 +1,665 @@
+From f7f08f9eaafb4e2a8cfe2940ec13203067313dc4 Mon Sep 17 00:00:00 2001
+From: ArTa Zone Dev <dev@artazone.local>
+Date: Sun, 13 Sep 2026 15:21:53 +0000
+Subject: [PATCH] perf: code-split routes, self-host fonts, resize images, add
+ cache headers, add robots/sitemap/llms.txt
+
+---
+ artazone-frontend/index.html                  |  8 +-
+ artazone-frontend/package-lock.json           | 20 +++++
+ artazone-frontend/package.json                |  4 +
+ artazone-frontend/public/llms.txt             | 17 ++++
+ artazone-frontend/public/robots.txt           | 13 +++
+ artazone-frontend/public/sitemap.xml          | 39 +++++++++
+ artazone-frontend/scripts/generate-sitemap.js | 81 +++++++++++++++++++
+ artazone-frontend/src/App.jsx                 | 78 +++++++++++-------
+ artazone-frontend/src/index.css               |  2 +-
+ artazone-frontend/src/main.jsx                | 15 ++++
+ artazone-frontend/src/pages/CategoryPage.jsx  |  2 +-
+ artazone-frontend/src/pages/DashboardPage.jsx |  4 +-
+ artazone-frontend/src/pages/DetailPage.jsx    |  4 +-
+ artazone-frontend/src/pages/LandingPage.jsx   |  4 +-
+ artazone-frontend/src/pages/StatusPage.jsx    |  2 +-
+ artazone-frontend/src/utils/resolveIconUrl.js | 29 +++++--
+ artazone-frontend/vercel.json                 | 24 +++++-
+ artazone-frontend/vite.config.js              | 16 ++++
+ topup-backend/docker/nginx.conf               | 17 ++++
+ 19 files changed, 329 insertions(+), 50 deletions(-)
+ create mode 100644 artazone-frontend/public/llms.txt
+ create mode 100644 artazone-frontend/public/robots.txt
+ create mode 100644 artazone-frontend/public/sitemap.xml
+ create mode 100644 artazone-frontend/scripts/generate-sitemap.js
+
+diff --git a/artazone-frontend/index.html b/artazone-frontend/index.html
+index 23daed6..0006a39 100644
+--- a/artazone-frontend/index.html
++++ b/artazone-frontend/index.html
+@@ -5,10 +5,10 @@
+     <link rel="icon" type="image/svg+xml" href="/src/assets/arta_logo.svg" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ 
+-    <link rel="preconnect" href="https://fonts.googleapis.com">
+-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+-    
++    <!-- Buka koneksi lebih awal ke API backend supaya request data pertama (kategori/trending) tidak menunggu DNS+TLS handshake -->
++    <link rel="preconnect" href="https://artazone-api.onrender.com" crossorigin>
++    <link rel="dns-prefetch" href="https://artazone-api.onrender.com">
++
+     <title>ArTa Zone - Top Up Game & PPOB</title>
+     <meta name="title" content="ArTa Zone - Top Up Game & PPOB" />
+     <meta name="description" content="Platform layanan Top Up Game favoritmu dan PPOB termurah, instan, dan terpercaya. Layanan buka 24 Jam Nonstop!" />
+diff --git a/artazone-frontend/package-lock.json b/artazone-frontend/package-lock.json
+index d188574..95e70b7 100644
+--- a/artazone-frontend/package-lock.json
++++ b/artazone-frontend/package-lock.json
+@@ -8,6 +8,8 @@
+       "name": "artazone-frontend",
+       "version": "0.0.0",
+       "dependencies": {
++        "@fontsource/plus-jakarta-sans": "^5.3.0",
++        "@fontsource/rajdhani": "^5.3.0",
+         "axios": "^1.18.1",
+         "html2canvas": "^1.4.1",
+         "react": "^19.2.7",
+@@ -445,6 +447,24 @@
+         "node": "^20.19.0 || ^22.13.0 || >=24"
+       }
+     },
++    "node_modules/@fontsource/plus-jakarta-sans": {
++      "version": "5.3.0",
++      "resolved": "https://registry.npmjs.org/@fontsource/plus-jakarta-sans/-/plus-jakarta-sans-5.3.0.tgz",
++      "integrity": "sha512-9WRw3G74Ve4cyPApAZSXLPY5DiLOZXDn7Q7dIBjFBpA0Pj56ljDItEdy2UUajjJxRuTg2HkMLO5C3K2nAQORWg==",
++      "license": "OFL-1.1",
++      "funding": {
++        "url": "https://github.com/sponsors/ayuhito"
++      }
++    },
++    "node_modules/@fontsource/rajdhani": {
++      "version": "5.3.0",
++      "resolved": "https://registry.npmjs.org/@fontsource/rajdhani/-/rajdhani-5.3.0.tgz",
++      "integrity": "sha512-oBJgSIibWJvVBKseme1JczqPLoDHN97LHti4uh0LjfcJqQoVmnQQlRKIpEjTJV559rmVQ6qbVZZwKwk2wkBTtw==",
++      "license": "OFL-1.1",
++      "funding": {
++        "url": "https://github.com/sponsors/ayuhito"
++      }
++    },
+     "node_modules/@humanfs/core": {
+       "version": "0.19.2",
+       "resolved": "https://registry.npmjs.org/@humanfs/core/-/core-0.19.2.tgz",
+diff --git a/artazone-frontend/package.json b/artazone-frontend/package.json
+index 678bbcc..a3d055b 100644
+--- a/artazone-frontend/package.json
++++ b/artazone-frontend/package.json
+@@ -5,11 +5,15 @@
+   "type": "module",
+   "scripts": {
+     "dev": "vite",
++    "prebuild": "node scripts/generate-sitemap.js",
+     "build": "vite build",
++    "sitemap": "node scripts/generate-sitemap.js",
+     "lint": "eslint .",
+     "preview": "vite preview"
+   },
+   "dependencies": {
++    "@fontsource/plus-jakarta-sans": "^5.3.0",
++    "@fontsource/rajdhani": "^5.3.0",
+     "axios": "^1.18.1",
+     "html2canvas": "^1.4.1",
+     "react": "^19.2.7",
+diff --git a/artazone-frontend/public/llms.txt b/artazone-frontend/public/llms.txt
+new file mode 100644
+index 0000000..4f8a584
+--- /dev/null
++++ b/artazone-frontend/public/llms.txt
+@@ -0,0 +1,17 @@
++# ArTa Zone
++
++> ArTa Zone adalah platform top up game dan PPOB (pulsa, token PLN, dan tagihan lainnya) yang instan, aman, dan terpercaya, buka 24 jam nonstop.
++
++ArTa Zone melayani pengisian diamond, UC, dan voucher untuk game-game populer, serta pembayaran PPOB (pulsa, data, token PLN, dan layanan lainnya), dengan proses otomatis dalam hitungan detik.
++
++## Halaman Utama
++
++- [Beranda](https://kansss.my.id/): Ringkasan layanan, produk trending, dan kategori populer.
++- [Kategori Produk](https://kansss.my.id/categories): Daftar lengkap semua kategori game dan PPOB yang tersedia.
++- [Promo](https://kansss.my.id/promo): Voucher dan promo top up yang sedang berjalan.
++
++## Bantuan & Kebijakan
++
++- [Pusat Bantuan](https://kansss.my.id/help): Panduan penggunaan dan FAQ.
++- [Syarat & Ketentuan](https://kansss.my.id/terms): Ketentuan penggunaan layanan.
++- [Kebijakan Privasi](https://kansss.my.id/privacy): Kebijakan privasi dan penggunaan data pengguna.
+diff --git a/artazone-frontend/public/robots.txt b/artazone-frontend/public/robots.txt
+new file mode 100644
+index 0000000..0a267f1
+--- /dev/null
++++ b/artazone-frontend/public/robots.txt
+@@ -0,0 +1,13 @@
++User-agent: *
++Allow: /
++Disallow: /admin/
++Disallow: /dashboard
++Disallow: /settings
++Disallow: /wallet/
++Disallow: /auth
++Disallow: /forgot-password
++Disallow: /reset-password
++Disallow: /verify-email
++Disallow: /status/
++
++Sitemap: https://kansss.my.id/sitemap.xml
+diff --git a/artazone-frontend/public/sitemap.xml b/artazone-frontend/public/sitemap.xml
+new file mode 100644
+index 0000000..9d7f8ed
+--- /dev/null
++++ b/artazone-frontend/public/sitemap.xml
+@@ -0,0 +1,39 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
++  <url>
++    <loc>https://kansss.my.id/</loc>
++    <lastmod>2026-09-13</lastmod>
++    <changefreq>daily</changefreq>
++    <priority>1.0</priority>
++  </url>
++  <url>
++    <loc>https://kansss.my.id/categories</loc>
++    <lastmod>2026-09-13</lastmod>
++    <changefreq>daily</changefreq>
++    <priority>0.9</priority>
++  </url>
++  <url>
++    <loc>https://kansss.my.id/promo</loc>
++    <lastmod>2026-09-13</lastmod>
++    <changefreq>daily</changefreq>
++    <priority>0.7</priority>
++  </url>
++  <url>
++    <loc>https://kansss.my.id/help</loc>
++    <lastmod>2026-09-13</lastmod>
++    <changefreq>monthly</changefreq>
++    <priority>0.5</priority>
++  </url>
++  <url>
++    <loc>https://kansss.my.id/terms</loc>
++    <lastmod>2026-09-13</lastmod>
++    <changefreq>yearly</changefreq>
++    <priority>0.3</priority>
++  </url>
++  <url>
++    <loc>https://kansss.my.id/privacy</loc>
++    <lastmod>2026-09-13</lastmod>
++    <changefreq>yearly</changefreq>
++    <priority>0.3</priority>
++  </url>
++</urlset>
+diff --git a/artazone-frontend/scripts/generate-sitemap.js b/artazone-frontend/scripts/generate-sitemap.js
+new file mode 100644
+index 0000000..62bb891
+--- /dev/null
++++ b/artazone-frontend/scripts/generate-sitemap.js
+@@ -0,0 +1,81 @@
++// Generate public/sitemap.xml sebelum build (dijalankan otomatis lewat npm "prebuild").
++// Menggabungkan halaman statis + satu <url> per kategori aktif yang diambil langsung dari API,
++// supaya sitemap selalu sinkron dengan kategori yang sedang tayang tanpa perlu update manual.
++
++import { writeFileSync } from 'fs';
++import { fileURLToPath } from 'url';
++import { dirname, join } from 'path';
++
++const __dirname = dirname(fileURLToPath(import.meta.url));
++const SITE_URL = 'https://kansss.my.id';
++const API_URL = 'https://artazone-api.onrender.com/api/categories';
++
++const staticRoutes = [
++  { path: '/', changefreq: 'daily', priority: '1.0' },
++  { path: '/categories', changefreq: 'daily', priority: '0.9' },
++  { path: '/promo', changefreq: 'daily', priority: '0.7' },
++  { path: '/help', changefreq: 'monthly', priority: '0.5' },
++  { path: '/terms', changefreq: 'yearly', priority: '0.3' },
++  { path: '/privacy', changefreq: 'yearly', priority: '0.3' },
++];
++
++function buildXml(urls) {
++  const today = new Date().toISOString().split('T')[0];
++  const body = urls
++    .map(
++      (u) => `  <url>
++    <loc>${SITE_URL}${u.path}</loc>
++    <lastmod>${today}</lastmod>
++    <changefreq>${u.changefreq}</changefreq>
++    <priority>${u.priority}</priority>
++  </url>`
++    )
++    .join('\n');
++
++  return `<?xml version="1.0" encoding="UTF-8"?>
++<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
++${body}
++</urlset>
++`;
++}
++
++async function fetchCategoryRoutes() {
++  try {
++    const controller = new AbortController();
++    const timeout = setTimeout(() => controller.abort(), 8000);
++    const res = await fetch(API_URL, { signal: controller.signal });
++    clearTimeout(timeout);
++
++    if (!res.ok) throw new Error(`API responded with ${res.status}`);
++    const json = await res.json();
++    if (json.status !== 'success' || !Array.isArray(json.data)) {
++      throw new Error('Unexpected API response shape');
++    }
++
++    return json.data
++      .filter((category) => category.is_active)
++      .map((category) => ({
++        path: `/detail/${category.id}`,
++        changefreq: 'weekly',
++        priority: '0.8',
++      }));
++  } catch (err) {
++    console.warn(
++      '[generate-sitemap] Gagal mengambil kategori dari API, sitemap hanya akan berisi halaman statis:',
++      err.message
++    );
++    return [];
++  }
++}
++
++async function main() {
++  const categoryRoutes = await fetchCategoryRoutes();
++  const xml = buildXml([...staticRoutes, ...categoryRoutes]);
++  const outPath = join(__dirname, '..', 'public', 'sitemap.xml');
++  writeFileSync(outPath, xml, 'utf-8');
++  console.log(
++    `[generate-sitemap] sitemap.xml ditulis dengan ${staticRoutes.length + categoryRoutes.length} URL (${categoryRoutes.length} kategori dinamis).`
++  );
++}
++
++main();
+diff --git a/artazone-frontend/src/App.jsx b/artazone-frontend/src/App.jsx
+index b9ddeb1..b6a35cd 100644
+--- a/artazone-frontend/src/App.jsx
++++ b/artazone-frontend/src/App.jsx
+@@ -1,34 +1,50 @@
++import { Suspense, lazy } from 'react';
+ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+-import LandingPage from './pages/LandingPage';
+-import CategoryPage from './pages/CategoryPage';
+-import DetailPage from './pages/DetailPage';
+-import AuthPage from './pages/AuthPage';
+-import ForgotPasswordPage from './pages/ForgotPasswordPage';
+-import ResetPasswordPage from './pages/ResetPasswordPage';
+-import VerifyEmailNoticePage from './pages/VerifyEmailNoticePage';
+-import WalletTopupPage from './pages/WalletTopupPage';
+-import WalletHistoryPage from './pages/WalletHistoryPage';
+-import AdminWalletTopup from './pages/admin/AdminWalletTopup';
+-import VerifyEmailProcessPage from './pages/VerifyEmailProcessPage';
+-import StatusPage from './pages/StatusPage';
+-import DashboardPage from './pages/DashboardPage';
+-import SettingsPage from './pages/SettingsPage';
+-import TicketPage from './pages/TicketPage';
+-import PromoPage from './pages/PromoPage';
+-import HelpPage from './pages/HelpPage';
+-import TermsPage from './pages/TermsPage';
+-import PrivacyPage from './pages/PrivacyPage';
+-import AdminDashboard from './pages/admin/AdminDashboard';
+-import AdminProduct from './pages/admin/AdminProduct';
+-import AdminTransaction from './pages/admin/AdminTransaction';
+-import AdminUser from './pages/admin/AdminUser';
+-import AdminPromo from './pages/admin/AdminPromo';
+-import AdminTicket from './pages/admin/AdminTicket';
+-import AdminAuditLog from './pages/admin/AdminAuditLog';
+-import AdminSettings from './pages/admin/AdminSettings';
+-import AdminCategory from './pages/admin/AdminCategory';
+ import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
+ 
++// LandingPage dimuat langsung (bukan lazy) karena ini halaman pertama yang dilihat
++// pengguna (route "/"), jadi tidak perlu menunggu chunk terpisah + loading fallback.
++import LandingPage from './pages/LandingPage';
++
++// Semua halaman lain di-lazy-load per route supaya bundle awal jauh lebih kecil
++// (mengatasi temuan PageSpeed "Kurangi JavaScript yang tidak digunakan").
++const CategoryPage = lazy(() => import('./pages/CategoryPage'));
++const DetailPage = lazy(() => import('./pages/DetailPage'));
++const AuthPage = lazy(() => import('./pages/AuthPage'));
++const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
++const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
++const VerifyEmailNoticePage = lazy(() => import('./pages/VerifyEmailNoticePage'));
++const WalletTopupPage = lazy(() => import('./pages/WalletTopupPage'));
++const WalletHistoryPage = lazy(() => import('./pages/WalletHistoryPage'));
++const VerifyEmailProcessPage = lazy(() => import('./pages/VerifyEmailProcessPage'));
++const StatusPage = lazy(() => import('./pages/StatusPage'));
++const DashboardPage = lazy(() => import('./pages/DashboardPage'));
++const SettingsPage = lazy(() => import('./pages/SettingsPage'));
++const TicketPage = lazy(() => import('./pages/TicketPage'));
++const PromoPage = lazy(() => import('./pages/PromoPage'));
++const HelpPage = lazy(() => import('./pages/HelpPage'));
++const TermsPage = lazy(() => import('./pages/TermsPage'));
++const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
++
++const AdminWalletTopup = lazy(() => import('./pages/admin/AdminWalletTopup'));
++const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
++const AdminProduct = lazy(() => import('./pages/admin/AdminProduct'));
++const AdminTransaction = lazy(() => import('./pages/admin/AdminTransaction'));
++const AdminUser = lazy(() => import('./pages/admin/AdminUser'));
++const AdminPromo = lazy(() => import('./pages/admin/AdminPromo'));
++const AdminTicket = lazy(() => import('./pages/admin/AdminTicket'));
++const AdminAuditLog = lazy(() => import('./pages/admin/AdminAuditLog'));
++const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
++const AdminCategory = lazy(() => import('./pages/admin/AdminCategory'));
++
++function RouteFallback() {
++  return (
++    <div className="w-full min-h-[40vh] flex items-center justify-center">
++      <div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
++    </div>
++  );
++}
++
+ function AppContent() {
+   const location = useLocation();
+   // Layout h-screen+overflow-hidden HANYA untuk panel admin (sidebar tetap, konten yang scroll).
+@@ -38,6 +54,7 @@ function AppContent() {
+   return (
+     <div className={isAdminRoute ? 'flex h-screen overflow-hidden bg-white' : ''}>
+       <main>
++      <Suspense fallback={<RouteFallback />}>
+       <Routes>
+         <Route path="/" element={<LandingPage />} />
+         <Route path="/categories" element={<CategoryPage />} />
+@@ -58,7 +75,7 @@ function AppContent() {
+         <Route path="/help" element={<HelpPage />} />
+         <Route path="/terms" element={<TermsPage />} />
+         <Route path="/privacy" element={<PrivacyPage />} />
+-        
++
+         <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+         <Route path="/admin/categories" element={<AdminRoute><AdminCategory /></AdminRoute>} />
+         <Route path="/admin/products" element={<AdminRoute><AdminProduct /></AdminRoute>} />
+@@ -69,6 +86,7 @@ function AppContent() {
+         <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLog /></AdminRoute>} />
+         <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+       </Routes>
++      </Suspense>
+       </main>
+     </div>
+   );
+@@ -82,4 +100,4 @@ function App() {
+   );
+ }
+ 
+-export default App;
+\ No newline at end of file
++export default App;
+diff --git a/artazone-frontend/src/index.css b/artazone-frontend/src/index.css
+index a55f3ef..9e7063d 100644
+--- a/artazone-frontend/src/index.css
++++ b/artazone-frontend/src/index.css
+@@ -1,4 +1,4 @@
+-/* Font sudah di-load lewat <link> di index.html (lebih cepat, hindari waterfall @import) */
++/* Font di-self-host lewat @fontsource (di-import di main.jsx), bukan lagi lewat <link> ke Google Fonts */
+ 
+ @tailwind base;
+ @tailwind components;
+diff --git a/artazone-frontend/src/main.jsx b/artazone-frontend/src/main.jsx
+index b9a1a6d..c8e981c 100644
+--- a/artazone-frontend/src/main.jsx
++++ b/artazone-frontend/src/main.jsx
+@@ -1,5 +1,20 @@
+ import { StrictMode } from 'react'
+ import { createRoot } from 'react-dom/client'
++
++// Font di-self-host (bundled) lewat @fontsource, bukan lewat <link> ke fonts.googleapis.com.
++// Ini menghapus round-trip DNS+koneksi+download ke domain pihak ketiga yang sebelumnya
++// jadi bagian terlama di jalur render kritis (lihat temuan "Hierarki dependensi jaringan"
++// di PageSpeed, fonts.gstatic.com woff2 ~1.5 detik). Hanya ketebalan (weight) yang benar-benar
++// dipakai di UI yang di-import supaya ukuran bundle tetap kecil.
++import '@fontsource/rajdhani/500.css'
++import '@fontsource/rajdhani/600.css'
++import '@fontsource/rajdhani/700.css'
++import '@fontsource/plus-jakarta-sans/400.css'
++import '@fontsource/plus-jakarta-sans/500.css'
++import '@fontsource/plus-jakarta-sans/600.css'
++import '@fontsource/plus-jakarta-sans/700.css'
++import '@fontsource/plus-jakarta-sans/800.css'
++
+ import './index.css'
+ import App from './App.jsx'
+ 
+diff --git a/artazone-frontend/src/pages/CategoryPage.jsx b/artazone-frontend/src/pages/CategoryPage.jsx
+index 2436413..805a1ee 100644
+--- a/artazone-frontend/src/pages/CategoryPage.jsx
++++ b/artazone-frontend/src/pages/CategoryPage.jsx
+@@ -72,7 +72,7 @@ export default function CategoryPage() {
+             
+             <div className="w-full aspect-square bg-violet-100 rounded-lg mb-2 border-2 border-ink group-hover:bg-gold-100 transition-colors flex items-center justify-center overflow-hidden">
+               {category.icon ? (
+-                <img src={resolveIconUrl(category.icon)} alt={category.name} className="w-full h-full object-cover" loading="lazy" />
++                <img src={resolveIconUrl(category.icon, 130)} alt={category.name} className="w-full h-full object-cover" loading="lazy" width="130" height="130" />
+               ) : (
+                 <span className="font-bold text-violet-300 text-2xl group-hover:text-gold-400">
+                   {category.name.substring(0,2).toUpperCase()}
+diff --git a/artazone-frontend/src/pages/DashboardPage.jsx b/artazone-frontend/src/pages/DashboardPage.jsx
+index 8d25c5e..a65f938 100644
+--- a/artazone-frontend/src/pages/DashboardPage.jsx
++++ b/artazone-frontend/src/pages/DashboardPage.jsx
+@@ -2,7 +2,6 @@
+ import { useState, useEffect, useRef } from 'react';
+ import { Link, useNavigate, useLocation } from 'react-router-dom';
+ import axios from 'axios';
+-import html2canvas from 'html2canvas';
+ import Navbar from '../components/Navbar';
+ import Footer from '../components/Footer';
+ import UserSidebar from '../components/UserSidebar';
+@@ -56,7 +55,8 @@ export default function DashboardPage() {
+     if (downloadingTrx && hiddenReceiptRef.current) {
+       const generateReceipt = async () => {
+         try {
+-          await new Promise(resolve => setTimeout(resolve, 200)); 
++          await new Promise(resolve => setTimeout(resolve, 200));
++          const { default: html2canvas } = await import('html2canvas');
+           const canvas = await html2canvas(hiddenReceiptRef.current, {
+             scale: 2,
+             backgroundColor: '#ffffff'
+diff --git a/artazone-frontend/src/pages/DetailPage.jsx b/artazone-frontend/src/pages/DetailPage.jsx
+index 1cebb4d..7ca8afb 100644
+--- a/artazone-frontend/src/pages/DetailPage.jsx
++++ b/artazone-frontend/src/pages/DetailPage.jsx
+@@ -368,9 +368,11 @@ export default function DetailPage() {
+             <div className="w-full h-40 bg-violet-100 rounded-xl mb-4 border-2 border-ink/5 flex items-center justify-center overflow-hidden">
+               {categoryIcon ? (
+                 <img
+-                  src={resolveIconUrl(categoryIcon)}
++                  src={resolveIconUrl(categoryIcon, 400)}
+                   alt={categoryName}
+                   className="w-full h-full object-cover"
++                  width="400"
++                  height="160"
+                 />
+               ) : (
+                 <span className="font-display font-700 text-3xl text-violet-300">
+diff --git a/artazone-frontend/src/pages/LandingPage.jsx b/artazone-frontend/src/pages/LandingPage.jsx
+index 64b3bba..5ab04cc 100644
+--- a/artazone-frontend/src/pages/LandingPage.jsx
++++ b/artazone-frontend/src/pages/LandingPage.jsx
+@@ -66,7 +66,7 @@ export default function LandingPage() {
+                 <Link to={`/detail/${game.id}`} key={game.id} className="card-sm p-2 md:p-3 text-center cursor-pointer hover:-translate-y-1 transition group">
+                   <div className={`w-full h-12 md:h-14 rounded-lg mb-2 border border-ink/10 flex items-center justify-center overflow-hidden ${index % 2 === 0 ? 'bg-violet-100' : 'bg-gold-100'}`}>
+                     {game.icon ? (
+-                      <img src={resolveIconUrl(game.icon)} alt={game.name} className="w-full h-full object-cover" loading="lazy" />
++                      <img src={resolveIconUrl(game.icon, 130)} alt={game.name} className="w-full h-full object-cover" loading="lazy" width="130" height="130" />
+                     ) : (
+                       <span className="font-bold text-ink/30 text-lg md:text-xl group-hover:text-ink/60">
+                         {game.name.substring(0,2).toUpperCase()}
+@@ -95,7 +95,7 @@ export default function LandingPage() {
+               <Link to={`/detail/${category.id}`} key={category.id} className="card-sm p-2 md:p-3 text-center hover:-translate-y-1 transition cursor-pointer group flex flex-col items-center justify-start">
+                 <div className={`w-full aspect-square rounded-lg mb-2 border border-ink/10 flex items-center justify-center overflow-hidden ${index % 2 === 0 ? 'bg-violet-100' : 'bg-gold-100'}`}>
+                   {category.icon ? (
+-                    <img src={resolveIconUrl(category.icon)} alt={category.name} className="w-full h-full object-cover" loading="lazy" />
++                    <img src={resolveIconUrl(category.icon, 130)} alt={category.name} className="w-full h-full object-cover" loading="lazy" width="130" height="130" />
+                   ) : (
+                     <span className="font-bold text-ink/30 text-xl md:text-2xl group-hover:text-ink/60">
+                       {category.name.substring(0,2).toUpperCase()}
+diff --git a/artazone-frontend/src/pages/StatusPage.jsx b/artazone-frontend/src/pages/StatusPage.jsx
+index 1937c75..1092dca 100644
+--- a/artazone-frontend/src/pages/StatusPage.jsx
++++ b/artazone-frontend/src/pages/StatusPage.jsx
+@@ -1,7 +1,6 @@
+ import { useEffect, useState, useRef } from 'react';
+ import { useParams, Link } from 'react-router-dom';
+ import axios from 'axios';
+-import html2canvas from 'html2canvas';
+ import Navbar from '../components/Navbar';
+ import Footer from '../components/Footer';
+ 
+@@ -36,6 +35,7 @@ export default function StatusPage() {
+     if (receiptRef.current) {
+       setIsDownloading(true);
+       try {
++        const { default: html2canvas } = await import('html2canvas');
+         const canvas = await html2canvas(receiptRef.current, {
+           scale: 2,
+           backgroundColor: '#ffffff'
+diff --git a/artazone-frontend/src/utils/resolveIconUrl.js b/artazone-frontend/src/utils/resolveIconUrl.js
+index e687019..f124a57 100644
+--- a/artazone-frontend/src/utils/resolveIconUrl.js
++++ b/artazone-frontend/src/utils/resolveIconUrl.js
+@@ -2,11 +2,28 @@
+  * Resolve URL icon kategori/produk.
+  * - Kalau sudah URL lengkap (http/https) -> pakai apa adanya (untuk data lama yang belum dimigrasi).
+  * - Kalau path lokal (hasil upload/migrasi ke storage sendiri) -> gabung dengan base URL storage backend.
++ *
++ * @param {string} icon - path/URL icon dari API
++ * @param {number} [size] - lebar target dalam px (opsional). Kalau diisi, gambar akan
++ *   di-resize on-the-fly via images.weserv.nl sebelum sampai ke browser, supaya file
++ *   600x600 asli tidak dikirim penuh untuk slot tampilan yang jauh lebih kecil
++ *   (mengatasi temuan PageSpeed "Meningkatkan penayangan gambar").
+  */
+-export function resolveIconUrl(icon) {
++export function resolveIconUrl(icon, size) {
+   if (!icon) return null;
+-  if (icon.startsWith('http://') || icon.startsWith('https://')) {
+-    return icon;
+-  }
+-  return `https://artazone-api.onrender.com/storage/${icon}`;
+-}
+\ No newline at end of file
++
++  const fullUrl = icon.startsWith('http://') || icon.startsWith('https://')
++    ? icon
++    : `https://artazone-api.onrender.com/storage/${icon}`;
++
++  if (!size) return fullUrl;
++
++  // images.weserv.nl adalah proxy resize gambar gratis & cepat (dipakai luas, termasuk
++  // oleh banyak situs production) yang juga otomatis mengonversi ke format modern (webp)
++  // sesuai dukungan browser dan menambahkan cache header yang panjang di sisi mereka.
++  const withoutProtocol = fullUrl.replace(/^https?:\/\//, '');
++  const dpr = typeof window !== 'undefined' && window.devicePixelRatio > 1 ? 2 : 1;
++  const targetSize = Math.round(size * dpr);
++
++  return `https://images.weserv.nl/?url=${encodeURIComponent(withoutProtocol)}&w=${targetSize}&h=${targetSize}&fit=cover&q=80&output=webp`;
++}
+diff --git a/artazone-frontend/vercel.json b/artazone-frontend/vercel.json
+index 29c0269..b225505 100644
+--- a/artazone-frontend/vercel.json
++++ b/artazone-frontend/vercel.json
+@@ -1,8 +1,28 @@
+ {
+   "rewrites": [
+     {
+-      "source": "/(.*)",
++      "source": "/((?!robots.txt|sitemap.xml|llms.txt|og-image.png|favicon.svg|icons.svg|assets/).*)",
+       "destination": "/index.html"
+     }
++  ],
++  "headers": [
++    {
++      "source": "/assets/(.*)",
++      "headers": [
++        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
++      ]
++    },
++    {
++      "source": "/(og-image.png|favicon.svg|icons.svg)",
++      "headers": [
++        { "key": "Cache-Control", "value": "public, max-age=604800" }
++      ]
++    },
++    {
++      "source": "/(robots.txt|sitemap.xml|llms.txt)",
++      "headers": [
++        { "key": "Cache-Control", "value": "public, max-age=3600" }
++      ]
++    }
+   ]
+-}
+\ No newline at end of file
++}
+diff --git a/artazone-frontend/vite.config.js b/artazone-frontend/vite.config.js
+index 8b0f57b..e65bf94 100644
+--- a/artazone-frontend/vite.config.js
++++ b/artazone-frontend/vite.config.js
+@@ -4,4 +4,20 @@ import react from '@vitejs/plugin-react'
+ // https://vite.dev/config/
+ export default defineConfig({
+   plugins: [react()],
++  build: {
++    // Pisahkan library pihak ketiga ke chunk vendor sendiri: browser bisa cache chunk ini
++    // dalam waktu lama karena jarang berubah, terpisah dari kode aplikasi yang sering di-deploy.
++    // html2canvas & sweetalert2 sengaja TIDAK dimasukkan ke sini karena sudah di-dynamic-import
++    // / dipakai di halaman tertentu saja, jadi biarkan Vite pisahkan otomatis per-route.
++    rollupOptions: {
++      output: {
++        manualChunks(id) {
++          if (id.includes('node_modules')) {
++            if (/react-router|\/react\/|\/react-dom\//.test(id)) return 'vendor-react';
++            if (id.includes('axios')) return 'vendor-axios';
++          }
++        },
++      },
++    },
++  },
+ })
+diff --git a/topup-backend/docker/nginx.conf b/topup-backend/docker/nginx.conf
+index 33a4058..78ca76d 100644
+--- a/topup-backend/docker/nginx.conf
++++ b/topup-backend/docker/nginx.conf
+@@ -12,12 +12,29 @@ http {
+     sendfile on;
+     keepalive_timeout 65;
+ 
++    # Kompres respons teks (JSON API, CSS, JS jika ada) supaya transfer lebih kecil.
++    gzip on;
++    gzip_vary on;
++    gzip_comp_level 5;
++    gzip_min_length 256;
++    gzip_types application/json application/javascript text/css text/plain image/svg+xml;
++
+     server {
+         listen 80;
+         server_name _;
+         root /var/www/html/public;
+         index index.php index.html;
+ 
++        # Gambar kategori/produk (public storage) & aset statis lain: cache lama di browser/CDN.
++        # Ini yang mengatasi temuan PageSpeed "Gunakan durasi cache yang efisien" untuk
++        # file-file di /storage/categories/*.png yang sebelumnya tidak punya Cache-Control sama sekali.
++        location ~* \.(jpg|jpeg|png|gif|webp|svg|ico|css|js|woff|woff2|ttf)$ {
++            try_files $uri =404;
++            expires 30d;
++            add_header Cache-Control "public, max-age=2592000, immutable";
++            access_log off;
++        }
++
+         location / {
+             try_files $uri $uri/ /index.php?$query_string;
+         }
+-- 
+2.43.0
+
