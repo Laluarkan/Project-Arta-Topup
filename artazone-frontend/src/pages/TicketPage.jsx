@@ -126,8 +126,8 @@ export default function TicketPage() {
             )}
           </div>
         </div> 
-      <Footer />
     </div>
+    <Footer />
   </div>
   );
 }
