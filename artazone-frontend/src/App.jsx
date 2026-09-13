@@ -37,6 +37,7 @@ function AppContent() {
 
   return (
     <div className={isAdminRoute ? 'flex h-screen overflow-hidden bg-white' : ''}>
+      <main>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/categories" element={<CategoryPage />} />
@@ -68,6 +69,7 @@ function AppContent() {
         <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLog /></AdminRoute>} />
         <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
       </Routes>
+      </main>
     </div>
   );
 }

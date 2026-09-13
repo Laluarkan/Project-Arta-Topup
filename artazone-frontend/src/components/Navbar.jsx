@@ -32,7 +32,7 @@ export default function Navbar() {
         <Link to="/" className="flex items-center gap-2" onClick={closeMenu}>
           <img src={logo} alt="ArTaZone Logo" className="h-8 w-8" />
           <div className="font-display font-700 text-xl md:text-2xl text-ink">
-            ArTa<span className="text-gold-400"> Zone</span>
+            ArTa<span className="text-gold-700"> Zone</span>
           </div>
         </Link>
         
@@ -59,6 +59,7 @@ export default function Navbar() {
           <button 
             className="lg:hidden text-ink p-1 ml-1"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {isMobileMenuOpen ? (

@@ -110,7 +110,7 @@ export default function LandingPage() {
           
           {categories.length > 0 && (
             <Link to="/categories" className="card-sm p-3 md:p-4 text-center hover:-translate-y-1 transition cursor-pointer flex flex-col justify-center items-center bg-ink text-white">
-              <p className="text-[10px] md:text-xs font-bold text-gold-400">Lihat Semua Kategori →</p>
+              <p className="text-[10px] md:text-xs font-bold text-gold-700">Lihat Semua Kategori →</p>
             </Link>
           )}
         </div>
