@@ -13,8 +13,13 @@ class WalletTopupController extends Controller
     public function index(Request $request)
     {
         $query = WalletTopup::with('user:id,name,email')
-            ->where('payment_method', 'manual')
             ->orderBy('created_at', 'desc');
+
+        // Filter opsional: kalau tidak dikirim, tampilkan SEMUA metode (manual/midtrans/pakasir)
+        // supaya admin bisa lihat & audit seluruh riwayat top up, bukan cuma yang butuh review manual.
+        if ($request->payment_method) {
+            $query->where('payment_method', $request->payment_method);
+        }
 
         if ($request->status) {
             $query->where('status', $request->status);
@@ -29,6 +34,10 @@ class WalletTopupController extends Controller
     public function approve(Request $request, $id)
     {
         $topup = WalletTopup::findOrFail($id);
+
+        if ($topup->payment_method !== 'manual') {
+            return response()->json(['status' => 'error', 'message' => 'Top up via payment gateway otomatis tidak bisa di-approve manual. Statusnya mengikuti konfirmasi pembayaran asli.'], 400);
+        }
 
         if ($topup->status !== 'PENDING') {
             return response()->json(['status' => 'error', 'message' => 'Permintaan ini sudah diproses sebelumnya.'], 400);
