@@ -75,9 +75,10 @@ export default function TicketPage() {
     <div className="flex-1 overflow-y-auto bg-white flex flex-col">
       <Navbar />
 
-        <div className="flex-1 max-w-6xl w-full mx-auto p-8 grid lg:grid-cols-4 gap-8">
-        <UserSidebar />
+      <div className="flex-1 max-w-6xl w-full mx-auto p-8 grid lg:grid-cols-4 gap-8">
+      <UserSidebar /> 
 
+        <div className="lg:col-span-3">
           <h1 className="font-display font-700 text-2xl mb-6">Pusat Bantuan & Komplain</h1>          
           <form onSubmit={handleSubmit} className="card p-6 mb-8 bg-violet-50/50">
             <h2 className="font-bold mb-4">Buat Tiket Baru</h2>
@@ -127,5 +128,6 @@ export default function TicketPage() {
         </div> 
       <Footer />
     </div>
+  </div>
   );
 }
