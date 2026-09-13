@@ -110,6 +110,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/categories', [AdminCategoryController::class, 'index']);
         Route::put('/categories/{id}', [AdminCategoryController::class, 'update']);
         Route::post('/categories/auto-fetch-logos', [AdminCategoryController::class, 'autoFetchLogos']);
+        Route::post('/categories/{id}/upload-icon', [AdminCategoryController::class, 'uploadIcon']);
+        Route::post('/categories/migrate-external-icons', [AdminCategoryController::class, 'migrateExternalIcons']);
 
         Route::get('/products', [AdminProductController::class, 'index']);
         Route::put('/products/{id}', [AdminProductController::class, 'update']);

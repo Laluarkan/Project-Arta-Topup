@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { resolveIconUrl } from '../utils/resolveIconUrl';
 
 const PopupModal = ({ isOpen, message, onClose, type = 'error' }) => {
   if (!isOpen) return null;
@@ -367,7 +368,7 @@ export default function DetailPage() {
             <div className="w-full h-40 bg-violet-100 rounded-xl mb-4 border-2 border-ink/5 flex items-center justify-center overflow-hidden">
               {categoryIcon ? (
                 <img
-                  src={categoryIcon}
+                  src={resolveIconUrl(categoryIcon)}
                   alt={categoryName}
                   className="w-full h-full object-cover"
                 />
