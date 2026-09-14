@@ -118,7 +118,7 @@ class TransactionController extends Controller
 
                     WalletTransaction::create([
                         'user_id' => $user->id,
-                        'type' => 'addition',
+                        'type' => 'refund',
                         'amount' => $transaction->amount,
                         'balance_before' => $balanceBefore,
                         'balance_after' => $user->balance,

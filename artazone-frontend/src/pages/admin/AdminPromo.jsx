@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/client';
 import AdminSidebar from '../../components/AdminSidebar';
 
 export default function AdminPromo() {
@@ -22,7 +22,7 @@ export default function AdminPromo() {
   const token = localStorage.getItem('token');
 
   const fetchPromos = () => {
-    axios.get('https://artazone-api.onrender.com/api/admin/promos', {
+    api.get('/admin/promos', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setPromos(res.data.data))
@@ -42,11 +42,11 @@ export default function AdminPromo() {
     e.preventDefault();
     try {
       if (editingId) {
-        await axios.put(`https://artazone-api.onrender.com/api/admin/promos/${editingId}`, formData, {
+        await api.put(`/admin/promos/${editingId}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        await axios.post('https://artazone-api.onrender.com/api/admin/promos', formData, {
+        await api.post('/admin/promos', formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -60,7 +60,7 @@ export default function AdminPromo() {
   const handleDelete = async (id) => {
     if (!window.confirm('Yakin ingin menghapus voucher ini?')) return;
     try {
-      await axios.delete(`https://artazone-api.onrender.com/api/admin/promos/${id}`, {
+      await api.delete(`/admin/promos/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchPromos();

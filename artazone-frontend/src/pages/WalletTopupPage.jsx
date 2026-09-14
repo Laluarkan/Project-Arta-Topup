@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import UserSidebar from '../components/UserSidebar';
@@ -35,13 +35,13 @@ export default function WalletTopupPage() {
   useEffect(() => {
     if (!token) { navigate('/auth'); return; }
 
-    axios.get('https://artazone-api.onrender.com/api/payment-gateways/status')
+    api.get('/payment-gateways/status')
       .then(res => { if (res.data.status === 'success') setActiveGateways(res.data.data); })
       .catch(() => {});
 
     // FIX: endpoint ini wajib auth:sanctum, harus sertakan Bearer token — sebelumnya
     // tidak disertakan sehingga selalu 401 dan info rekening tidak pernah muncul.
-    axios.get('https://artazone-api.onrender.com/api/wallet/manual-transfer-info', {
+    api.get('/wallet/manual-transfer-info', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => { if (res.data.status === 'success') setTransferInfo(res.data.data); })
@@ -54,7 +54,7 @@ export default function WalletTopupPage() {
     const interval = setInterval(async () => {
       elapsed += 4000;
       try {
-        const res = await axios.get(`https://artazone-api.onrender.com/api/wallet/topup/${topupId}`, {
+        const res = await api.get(`/wallet/topup/${topupId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data?.data?.status === 'PAID') {
@@ -76,10 +76,10 @@ export default function WalletTopupPage() {
     }
 
     setIsLoading(true);
-    const endpoint = method === 'midtrans' ? '/api/wallet/topup/midtrans' : '/api/wallet/topup/pakasir';
+    const endpoint = method === 'midtrans' ? '/wallet/topup/midtrans' : '/wallet/topup/pakasir';
 
     try {
-      const res = await axios.post(`https://artazone-api.onrender.com${endpoint}`, {
+      const res = await api.post(`${endpoint}`, {
         amount: numAmount,
         idempotency_key: idempotencyKeyRef.current
       }, { headers: { Authorization: `Bearer ${token}` }, timeout: 20000 });
@@ -129,7 +129,7 @@ export default function WalletTopupPage() {
     formData.append('proof_image', proofFile);
 
     try {
-      await axios.post('https://artazone-api.onrender.com/api/wallet/topup/manual', formData, {
+      await api.post('/wallet/topup/manual', formData, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
       setManualSubmitted(true);

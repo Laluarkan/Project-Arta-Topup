@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 
 const VerifyEmailProcessPage = () => {
   const { id, hash } = useParams();
@@ -14,11 +14,8 @@ const VerifyEmailProcessPage = () => {
       try {
         const expires = searchParams.get('expires');
         const signature = searchParams.get('signature');
-        
-        // Pastikan VITE_API_URL sudah diset di file .env frontend kamu
-        const apiUrl = import.meta.env.VITE_API_URL || 'https://artazone-api.onrender.com/api';
-        
-        await axios.get(`${apiUrl}/email/verify/${id}/${hash}?expires=${expires}&signature=${signature}`, {
+
+        await api.get(`/email/verify/${id}/${hash}?expires=${expires}&signature=${signature}`, {
           headers: {
             'Accept': 'application/json'
           }

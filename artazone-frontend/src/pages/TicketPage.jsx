@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import UserSidebar from '../components/UserSidebar';
@@ -22,7 +22,7 @@ export default function TicketPage() {
 
   const fetchTickets = async () => {
     try {
-      const res = await axios.get('https://artazone-api.onrender.com/api/user/tickets', {
+      const res = await api.get('/user/tickets', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTickets(res.data.data);
@@ -36,7 +36,7 @@ export default function TicketPage() {
       navigate('/auth');
       return;
     }
-    axios.get('https://artazone-api.onrender.com/api/user', { headers: { Authorization: `Bearer ${token}` } })
+    api.get('/user', { headers: { Authorization: `Bearer ${token}` } })
       .then(res => {
         setUser(res.data);
         fetchTickets();
@@ -52,7 +52,7 @@ export default function TicketPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await axios.post('https://artazone-api.onrender.com/api/user/tickets', { subject, message }, {
+      await api.post('/user/tickets', { subject, message }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSubject('');

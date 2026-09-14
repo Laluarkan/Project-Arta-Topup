@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -13,7 +13,7 @@ export default function ForgotPasswordPage() {
     setError('');
     setIsLoading(true);
     try {
-      await axios.post('https://artazone-api.onrender.com/api/forgot-password', { email });
+      await api.post('/forgot-password', { email });
       setSent(true);
     } catch (err) {
       setError(err.response?.data?.message || 'Terjadi kesalahan. Coba lagi.');

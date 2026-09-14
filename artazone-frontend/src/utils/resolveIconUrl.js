@@ -1,3 +1,5 @@
+import { API_ROOT_URL } from '../api/client';
+
 /**
  * Resolve URL icon kategori/produk.
  * - Kalau sudah URL lengkap (http/https) -> pakai apa adanya (untuk data lama yang belum dimigrasi).
@@ -14,7 +16,7 @@ export function resolveIconUrl(icon, size) {
 
   const fullUrl = icon.startsWith('http://') || icon.startsWith('https://')
     ? icon
-    : `https://artazone-api.onrender.com/storage/${icon}`;
+    : `${API_ROOT_URL}/storage/${icon}`;
 
   if (!size) return fullUrl;
 

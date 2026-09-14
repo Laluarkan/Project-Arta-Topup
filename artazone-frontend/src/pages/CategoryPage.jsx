@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { resolveIconUrl } from '../utils/resolveIconUrl';
@@ -11,7 +11,7 @@ export default function CategoryPage() {
   const [activeTab, setActiveTab] = useState('Semua');
 
   useEffect(() => {
-    axios.get('https://artazone-api.onrender.com/api/categories')
+    api.get('/categories')
       .then(res => {
         if (res.data.status === 'success') {
           setCategories(res.data.data);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 
 const formatRupiah = (num) => 'Rp ' + Number(num || 0).toLocaleString('id-ID');
 
@@ -12,7 +12,7 @@ export default function UserSidebar() {
 
   useEffect(() => {
     if (!token) return;
-    axios.get('https://artazone-api.onrender.com/api/user', {
+    api.get('/user', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => setBalance(res.data.balance))

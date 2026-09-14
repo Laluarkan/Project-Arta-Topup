@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 
 export default function VerifyEmailNoticePage() {
   const [searchParams] = useSearchParams();
@@ -13,7 +13,7 @@ export default function VerifyEmailNoticePage() {
     setIsSending(true);
     setSentMessage('');
     try {
-      await axios.post('https://artazone-api.onrender.com/api/email/resend-public', { email });
+      await api.post('/email/resend-public', { email });
       setSentMessage('Link verifikasi baru sudah dikirim. Cek inbox atau folder Spam.');
     } catch (err) {
       setSentMessage('Terjadi kesalahan. Coba lagi beberapa saat lagi.');

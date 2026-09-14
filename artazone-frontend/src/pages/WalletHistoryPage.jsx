@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import UserSidebar from '../components/UserSidebar';
@@ -24,7 +24,7 @@ export default function WalletHistoryPage() {
   useEffect(() => {
     if (!token) { navigate('/auth'); return; }
 
-    axios.get(`https://artazone-api.onrender.com/api/user/wallet-transactions?page=${page}`, {
+    api.get(`/user/wallet-transactions?page=${page}`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
       if (res.data.status === 'success') {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 import logo from '../assets/arta_logo.svg';
 
 export default function Navbar() {
@@ -11,7 +11,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     if (token) {
       try {
-        await axios.post('https://artazone-api.onrender.com/api/logout', {}, {
+        await api.post('/logout', {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } catch (error) {

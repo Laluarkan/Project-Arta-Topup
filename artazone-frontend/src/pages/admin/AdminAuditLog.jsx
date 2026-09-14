@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/client';
 import AdminSidebar from '../../components/AdminSidebar';
 
 export default function AdminAuditLog() {
@@ -16,7 +16,7 @@ export default function AdminAuditLog() {
       navigate('/auth');
       return;
     }
-    axios.get('https://artazone-api.onrender.com/api/admin/audit-logs', {
+    api.get('/admin/audit-logs', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setLogs(res.data.data))

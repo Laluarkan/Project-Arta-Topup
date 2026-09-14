@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 
 // Komponen Popup Kecil
 const PopupModal = ({ isOpen, message, onClose, type = 'error', extraAction }) => {
@@ -80,7 +80,7 @@ export default function AuthPage() {
     }
 
     setIsLoading(true);
-    const endpoint = isLogin ? '/api/login' : '/api/register';
+    const endpoint = isLogin ? '/login' : '/register';
     const payload = isLogin
       ? { email, password }
       : {
@@ -94,7 +94,7 @@ export default function AuthPage() {
         };
 
     try {
-      const res = await axios.post(`https://artazone-api.onrender.com${endpoint}`, payload, { timeout: 20000 });
+      const res = await api.post(`${endpoint}`, payload, { timeout: 20000 });
 
       if (res.data.status === 'success') {
         if (!isLogin) {
@@ -136,7 +136,7 @@ export default function AuthPage() {
   const handleResendVerification = async () => {
     setIsResending(true);
     try {
-      await axios.post('https://artazone-api.onrender.com/api/email/resend-public', { email: unverifiedEmail });
+      await api.post('/email/resend-public', { email: unverifiedEmail });
       setPopup({ isOpen: true, message: 'Link verifikasi baru sudah dikirim. Cek inbox Anda.', type: 'success' });
     } catch (err) {
       setPopup({ isOpen: true, message: 'Gagal mengirim ulang. Coba lagi beberapa saat lagi.', type: 'error' });

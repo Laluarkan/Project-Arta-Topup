@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/client';
 import AdminSidebar from '../../components/AdminSidebar';
 
 export default function AdminTicket() {
@@ -15,7 +15,7 @@ export default function AdminTicket() {
   const token = localStorage.getItem('token');
 
   const fetchTickets = () => {
-    axios.get('https://artazone-api.onrender.com/api/admin/tickets', {
+    api.get('/admin/tickets', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setTickets(res.data.data))
@@ -33,7 +33,7 @@ export default function AdminTicket() {
 
   const handleUpdateStatus = async (id, newStatus) => {
     try {
-      await axios.put(`https://artazone-api.onrender.com/api/admin/tickets/${id}/status`, 
+      await api.put(`/admin/tickets/${id}/status`, 
         { status: newStatus }, 
         { headers: { Authorization: `Bearer ${token}` } }
       );

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/client';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -10,7 +10,7 @@ export default function PromoPage() {
   const colors = ['bg-red-100', 'bg-violet-100', 'bg-gold-100', 'bg-blue-100', 'bg-green-100'];
 
   useEffect(() => {
-    axios.get('https://artazone-api.onrender.com/api/promos')
+    api.get('/promos')
       .then(res => setPromos(res.data.data))
       .catch(err => console.error(err))
       .finally(() => setIsLoading(false));

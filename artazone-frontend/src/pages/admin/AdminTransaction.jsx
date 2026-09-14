@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/client';
 import AdminSidebar from '../../components/AdminSidebar';
 
 export default function AdminTransaction() {
@@ -14,7 +14,7 @@ export default function AdminTransaction() {
   const token = localStorage.getItem('token');
 
   const fetchTransactions = () => {
-    axios.get('https://artazone-api.onrender.com/api/admin/transactions', {
+    api.get('/admin/transactions', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setTransactions(res.data.data))
@@ -34,7 +34,7 @@ export default function AdminTransaction() {
     if (!window.confirm(`PERINGATAN: Memaksa ubah status transaksi menjadi ${newStatus}? (Jika FAILED, saldo pembeli akan otomatis di-refund).`)) return;
     
     try {
-      await axios.put(`https://artazone-api.onrender.com/api/admin/transactions/${id}/status`, 
+      await api.put(`/admin/transactions/${id}/status`, 
         { status: newStatus }, 
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -51,7 +51,7 @@ export default function AdminTransaction() {
     
     try {
       alert('Sedang memproses ulang ke Digiflazz...');
-      await axios.post(`https://artazone-api.onrender.com/api/admin/transactions/${id}/retry`, 
+      await api.post(`/admin/transactions/${id}/retry`, 
         {}, 
         { headers: { Authorization: `Bearer ${token}` } }
       );

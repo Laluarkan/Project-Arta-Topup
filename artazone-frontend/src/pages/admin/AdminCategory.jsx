@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/client';
 import AdminSidebar from '../../components/AdminSidebar';
 import { resolveIconUrl } from '../../utils/resolveIconUrl';
 
@@ -25,7 +25,7 @@ export default function AdminCategory() {
   const externalCount = categories.filter(c => c.icon && c.icon.startsWith('http')).length;
 
   const fetchCategories = () => {
-    axios.get('https://artazone-api.onrender.com/api/admin/categories', {
+    api.get('/admin/categories', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setCategories(res.data.data))
@@ -46,7 +46,7 @@ export default function AdminCategory() {
 
     setIsFetchingLogos(true);
     try {
-      const res = await axios.post('https://artazone-api.onrender.com/api/admin/categories/auto-fetch-logos', {}, {
+      const res = await api.post('/admin/categories/auto-fetch-logos', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert(res.data.message);
@@ -63,7 +63,7 @@ export default function AdminCategory() {
 
     setIsMigrating(true);
     try {
-      const res = await axios.post('https://artazone-api.onrender.com/api/admin/categories/migrate-external-icons', {}, {
+      const res = await api.post('/admin/categories/migrate-external-icons', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert(res.data.message);
@@ -78,7 +78,7 @@ export default function AdminCategory() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`https://artazone-api.onrender.com/api/admin/categories/${editingCategory.id}`, editForm, {
+      await api.put(`/admin/categories/${editingCategory.id}`, editForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Data kategori berhasil diperbarui');
@@ -95,7 +95,7 @@ export default function AdminCategory() {
     const formData = new FormData();
     formData.append('icon', iconFile);
     try {
-      await axios.post(`https://artazone-api.onrender.com/api/admin/categories/${editingCategory.id}/upload-icon`, formData, {
+      await api.post(`/admin/categories/${editingCategory.id}/upload-icon`, formData, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
       alert('Logo berhasil diupload ke server sendiri!');

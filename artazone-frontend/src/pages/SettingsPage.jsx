@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import UserSidebar from '../components/UserSidebar';
@@ -21,7 +21,7 @@ export default function SettingsPage() {
       navigate('/auth');
       return;
     }
-    axios.get('https://artazone-api.onrender.com/api/user', { headers: { Authorization: `Bearer ${token}` } })
+    api.get('/user', { headers: { Authorization: `Bearer ${token}` } })
       .then(res => {
         setUser(res.data);
         setName(res.data.name);
@@ -37,7 +37,7 @@ export default function SettingsPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await axios.put('https://artazone-api.onrender.com/api/user/profile', { name, password }, {
+      await api.put('/user/profile', { name, password }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Profil berhasil diperbarui!');

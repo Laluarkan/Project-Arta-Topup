@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { resolveIconUrl } from '../utils/resolveIconUrl';
@@ -57,7 +57,7 @@ export default function DetailPage() {
   const [activeGateways, setActiveGateways] = useState({ wallet: true, midtrans: true, pakasir: true });
 
   useEffect(() => {
-    axios.get('https://artazone-api.onrender.com/api/payment-gateways/status')
+    api.get('/payment-gateways/status')
       .then(res => {
         if (res.data.status === 'success') {
           setActiveGateways(res.data.data);
@@ -76,7 +76,7 @@ export default function DetailPage() {
   }, [token]);
 
   useEffect(() => {
-    axios.get('https://artazone-api.onrender.com/api/categories')
+    api.get('/categories')
       .then(res => {
         const cat = res.data.data.find(c => c.id === id);
         if (cat) {
@@ -84,7 +84,7 @@ export default function DetailPage() {
           setCategoryIcon(cat.icon);
         }
       });
-    axios.get(`https://artazone-api.onrender.com/api/products/${id}`)
+    api.get(`/products/${id}`)
       .then(res => {
         if (res.data.status === 'success') {
           setProducts(res.data.data);
@@ -128,7 +128,7 @@ export default function DetailPage() {
     setIsCheckingName(true);
     setNickname('');
     try {
-      const res = await axios.post('https://artazone-api.onrender.com/api/check-nickname', {
+      const res = await api.post('/check-nickname', {
         game: categoryName,
         user_id: userId,
         zone_id: inputConfig.type === 'single' ? null : zoneId
@@ -150,7 +150,7 @@ export default function DetailPage() {
     if (!promoCodeInput) return;
     setIsCheckingPromo(true);
     try {
-      const res = await axios.post('https://artazone-api.onrender.com/api/promos/validate', { code: promoCodeInput });
+      const res = await api.post('/promos/validate', { code: promoCodeInput });
       setAppliedPromo(res.data.data);
       setPopup({ isOpen: true, message: 'Voucher berhasil digunakan!', type: 'success' });
     } catch (err) {
@@ -173,7 +173,7 @@ export default function DetailPage() {
     const interval = setInterval(async () => {
       elapsed += 4000;
       try {
-        const res = await axios.get(`https://artazone-api.onrender.com/api/transactions/${trxId}`);
+        const res = await api.get(`/transactions/${trxId}`);
         const status = res.data?.data?.status;
         if (status === 'PAID' || status === 'SUCCESS') {
           clearInterval(interval);
@@ -213,9 +213,9 @@ export default function DetailPage() {
 
     setIsLoading(true);
     const endpointMap = {
-      wallet: '/api/checkout/wallet',
-      qris: '/api/checkout/midtrans',
-      pakasir: '/api/checkout/pakasir'
+      wallet: '/checkout/wallet',
+      qris: '/checkout/midtrans',
+      pakasir: '/checkout/pakasir'
     };
     const endpoint = endpointMap[paymentMethod];
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -229,7 +229,7 @@ export default function DetailPage() {
     };
     
     try {
-      const res = await axios.post(`https://artazone-api.onrender.com${endpoint}`, payload, { headers });
+      const res = await api.post(`${endpoint}`, payload, { headers });
       
       if (paymentMethod === 'wallet') {
         const trxId = res.data.data.trx_id;

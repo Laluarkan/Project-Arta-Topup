@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -14,7 +14,7 @@ export default function StatusPage() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const fetchStatus = () => {
-      axios.get(`https://artazone-api.onrender.com/api/transactions/${id}`, {
+      api.get(`/transactions/${id}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       })
         .then(res => {

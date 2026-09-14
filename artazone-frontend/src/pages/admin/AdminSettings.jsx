@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import Swal from 'sweetalert2';
 import AdminSidebar from '../../components/AdminSidebar';
 
@@ -18,7 +18,7 @@ export default function AdminSettings() {
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    axios.get('https://artazone-api.onrender.com/api/admin/settings', {
+    api.get('/admin/settings', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => {
@@ -62,7 +62,7 @@ export default function AdminSettings() {
     };
 
     try {
-      await axios.post('https://artazone-api.onrender.com/api/admin/settings', payload, {
+      await api.post('/admin/settings', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

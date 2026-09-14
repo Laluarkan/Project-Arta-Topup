@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/client';
 import AdminSidebar from '../../components/AdminSidebar';
 
 const formatRupiah = (num) => 'Rp' + Number(num || 0).toLocaleString('id-ID');
@@ -30,7 +30,7 @@ export default function AdminWalletTopup() {
   const fetchTopups = () => {
     setIsLoading(true);
     const methodParam = filterMethod !== 'ALL' ? `&payment_method=${filterMethod}` : '';
-    axios.get(`https://artazone-api.onrender.com/api/admin/wallet-topups?status=${filterStatus}${methodParam}`, {
+    api.get(`/admin/wallet-topups?status=${filterStatus}${methodParam}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => setTopups(res.data.data.data || []))
@@ -46,7 +46,7 @@ export default function AdminWalletTopup() {
   const handleApprove = async (id) => {
     if (!confirm('Yakin approve top up ini? Saldo user akan langsung ditambahkan.')) return;
     try {
-      await axios.post(`https://artazone-api.onrender.com/api/admin/wallet-topups/${id}/approve`, {}, {
+      await api.post(`/admin/wallet-topups/${id}/approve`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchTopups();
@@ -58,7 +58,7 @@ export default function AdminWalletTopup() {
   const handleReject = async () => {
     if (!rejectNote.trim()) { alert('Alasan penolakan wajib diisi.'); return; }
     try {
-      await axios.post(`https://artazone-api.onrender.com/api/admin/wallet-topups/${rejectModal.id}/reject`,
+      await api.post(`/admin/wallet-topups/${rejectModal.id}/reject`,
         { admin_note: rejectNote },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -128,10 +128,10 @@ export default function AdminWalletTopup() {
                 <div className="flex flex-col items-center gap-2">
                   {t.payment_method === 'manual' && t.proof_image_path && (
                     <img
-                      src={`https://artazone-api.onrender.com/storage/${t.proof_image_path}`}
+                      src={`/storage/${t.proof_image_path}`}
                       alt="Bukti transfer"
                       className="w-24 h-24 object-cover rounded-lg border-2 border-ink cursor-pointer"
-                      onClick={() => setPreviewImage(`https://artazone-api.onrender.com/storage/${t.proof_image_path}`)}
+                      onClick={() => setPreviewImage(`/storage/${t.proof_image_path}`)}
                     />
                   )}
                   {t.payment_method === 'manual' && t.status === 'PENDING' ? (

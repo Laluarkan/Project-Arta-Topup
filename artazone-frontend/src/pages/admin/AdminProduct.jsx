@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/client';
 import Swal from 'sweetalert2';
 import AdminSidebar from '../../components/AdminSidebar';
 
@@ -19,7 +19,7 @@ export default function AdminProduct() {
   const token = localStorage.getItem('token');
 
   const fetchProducts = () => {
-    axios.get('https://artazone-api.onrender.com/api/admin/products', {
+    api.get('/admin/products', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setProducts(res.data.data))
@@ -64,7 +64,7 @@ export default function AdminProduct() {
 
     try {
       // PERBAIKAN: Menggunakan endpoint aslimu yang sudah ada di Render
-      const res = await axios.post('https://artazone-api.onrender.com/api/admin/sync-products', {}, {
+      const res = await api.post('/admin/sync-products', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -93,7 +93,7 @@ export default function AdminProduct() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`https://artazone-api.onrender.com/api/admin/products/${editingProduct.id}`, editForm, {
+      await api.put(`/admin/products/${editingProduct.id}`, editForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import UserSidebar from '../components/UserSidebar';
@@ -26,12 +26,12 @@ export default function DashboardPage() {
 
     const fetchData = async () => {
       try {
-        const userRes = await axios.get('https://artazone-api.onrender.com/api/user', {
+        const userRes = await api.get('/user', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUser(userRes.data);
 
-        const trxRes = await axios.get('https://artazone-api.onrender.com/api/user/transactions', {
+        const trxRes = await api.get('/user/transactions', {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (trxRes.data.status === 'success') {

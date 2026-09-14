@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/client';
 import AdminSidebar from '../../components/AdminSidebar';
 
 export default function AdminDashboard() {
@@ -15,7 +15,7 @@ export default function AdminDashboard() {
       return;
     }
 
-    axios.get('https://artazone-api.onrender.com/api/admin/dashboard', {
+    api.get('/admin/dashboard', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => {

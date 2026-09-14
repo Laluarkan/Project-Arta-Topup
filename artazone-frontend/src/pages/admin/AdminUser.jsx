@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/client';
 import AdminSidebar from '../../components/AdminSidebar';
 
 export default function AdminUser() {
@@ -16,7 +16,7 @@ export default function AdminUser() {
   const token = localStorage.getItem('token');
 
   const fetchUsers = () => {
-    axios.get('https://artazone-api.onrender.com/api/admin/users', {
+    api.get('/admin/users', {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setUsers(res.data.data))
@@ -35,7 +35,7 @@ export default function AdminUser() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`https://artazone-api.onrender.com/api/admin/users/${editingUser.id}`, editForm, {
+      await api.put(`/admin/users/${editingUser.id}`, editForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Data user berhasil diperbarui');
