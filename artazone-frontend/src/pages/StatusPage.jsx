@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../api/client';
+import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -12,11 +12,8 @@ export default function StatusPage() {
   const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
     const fetchStatus = () => {
-      api.get(`/transactions/${id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      })
+      axios.get(`https://artazone-api.onrender.com/api/transactions/${id}`)
         .then(res => {
           setTransaction(res.data.data);
           setIsLoading(false);
@@ -106,7 +103,10 @@ export default function StatusPage() {
   } else if (transaction.status === 'FAILED') {
     statusConfig = {
       title: 'Transaksi Gagal',
-      desc: transaction.status_note || 'Terjadi kesalahan, pesanan dibatalkan.',
+      // Sengaja tidak menampilkan transaction.status_note di sini — itu pesan teknis
+      // (mis. "API Error: ...") yang cuma relevan untuk admin. User cukup tahu gagal,
+      // detail lengkapnya bisa dicek admin lewat panel Manajemen Transaksi.
+      desc: 'Terjadi kesalahan saat memproses pesanan. Jika saldo sudah terpotong, dana akan otomatis dikembalikan. Hubungi CS jika ada kendala.',
       color: 'text-red-600'
     };
   }

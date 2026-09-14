@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AdminSidebar from '../../components/AdminSidebar';
@@ -8,6 +8,7 @@ export default function AdminTransaction() {
   const [transactions, setTransactions] = useState([]);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [expandedId, setExpandedId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
@@ -124,6 +125,7 @@ export default function AdminTransaction() {
             <table className="w-full text-left text-sm">
               <thead className="bg-white border-b-2 border-ink text-[10px] tracking-widest text-ink/70 sticky top-0 z-10">
                 <tr>
+                  <th className="p-4 font-bold w-8"></th>
                   <th className="p-4 font-bold">WAKTU</th>
                   <th className="p-4 font-bold">TRX ID</th>
                   <th className="p-4 font-bold">USER</th>
@@ -134,15 +136,24 @@ export default function AdminTransaction() {
                 </tr>
               </thead>
               <tbody className="divide-y-2 divide-ink/5">
-                {filteredTransactions.map(trx => (
-                  <tr key={trx.id} className="hover:bg-violet-50/50">
+                {filteredTransactions.map(trx => {
+                  const isOpen = expandedId === trx.trx_id;
+                  return (
+                  <Fragment key={trx.trx_id}>
+                  <tr
+                    className="hover:bg-violet-50/50 cursor-pointer"
+                    onClick={() => setExpandedId(isOpen ? null : trx.trx_id)}
+                  >
+                    <td className="p-4 text-ink/50">
+                      <span className={`inline-block transition-transform ${isOpen ? 'rotate-90' : ''}`}>▶</span>
+                    </td>
                     <td className="p-4 text-xs">{formatDate(trx.created_at)}</td>
                     <td className="p-4 font-mono text-xs" title={trx.trx_id}>{trx.trx_id.substring(0, 8)}...</td>
                     <td className="p-4">{trx.user?.email || 'Guest'}</td>
                     <td className="p-4 text-xs font-bold">{trx.product?.product_name || 'Produk Dihapus'}</td>
                     <td className="p-4 font-bold">{formatRupiah(trx.amount)}</td>
                     <td className="p-4 text-center">{getStatusBadge(trx.status)}</td>
-                    <td className="p-4 text-center">
+                    <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-2 justify-center">
                         <button 
                           onClick={() => handleRetryTopup(trx.trx_id)}
@@ -163,9 +174,39 @@ export default function AdminTransaction() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  {isOpen && (
+                    <tr className="bg-ink/[0.03]">
+                      <td colSpan="8" className="px-6 py-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs mb-3">
+                          <div>
+                            <p className="text-ink/50 font-bold mb-0.5">TRX ID Lengkap</p>
+                            <p className="font-mono break-all">{trx.trx_id}</p>
+                          </div>
+                          <div>
+                            <p className="text-ink/50 font-bold mb-0.5">Metode Bayar</p>
+                            <p className="uppercase">{trx.payment_method || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-ink/50 font-bold mb-0.5">Target / User ID</p>
+                            <p>{trx.user_game_id}{trx.zone_id ? ` (${trx.zone_id})` : ''}</p>
+                          </div>
+                          <div>
+                            <p className="text-ink/50 font-bold mb-0.5">Ref Digiflazz</p>
+                            <p className="font-mono break-all">{trx.digiflazz_ref_id || '-'}</p>
+                          </div>
+                        </div>
+                        <div className={`rounded-lg border-2 p-3 text-xs font-semibold ${trx.status === 'FAILED' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-ink/10 text-ink/70'}`}>
+                          <p className="font-bold mb-1">{trx.status === 'FAILED' ? '⚠️ Alasan Gagal:' : 'Catatan Sistem:'}</p>
+                          <p>{trx.status_note || 'Tidak ada catatan untuk transaksi ini.'}</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
+                  );
+                })}
                 {filteredTransactions.length === 0 && (
-                  <tr><td colSpan="7" className="p-8 text-center text-ink/70">Transaksi tidak ditemukan</td></tr>
+                  <tr><td colSpan="8" className="p-8 text-center text-ink/70">Transaksi tidak ditemukan</td></tr>
                 )}
               </tbody>
             </table>
