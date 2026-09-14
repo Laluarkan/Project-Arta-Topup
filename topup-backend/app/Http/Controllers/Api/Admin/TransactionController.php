@@ -49,7 +49,7 @@ class TransactionController extends Controller
     public function retryTopup(Request $request, $id)
     {
         try {
-            $transaction = Transaction::where('id', $id)->orWhere('trx_id', $id)->firstOrFail();
+            $transaction = Transaction::where('trx_id', $id)->firstOrFail();
 
             if ($transaction->status === 'SUCCESS') {
                 return response()->json(['status' => 'error', 'message' => 'Transaksi sudah sukses, tidak dapat di-retry'], 400);
@@ -116,7 +116,7 @@ class TransactionController extends Controller
         try {
             DB::beginTransaction();
 
-            $transaction = Transaction::where('id', $id)->orWhere('trx_id', $id)->firstOrFail();
+            $transaction = Transaction::where('trx_id', $id)->firstOrFail();
             
             $oldStatus = $transaction->status;
             $newStatus = $request->status;
