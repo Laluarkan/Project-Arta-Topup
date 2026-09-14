@@ -8,13 +8,11 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Transaction;
-use App\Models\User;
-use App\Models\WalletTransaction;
 use App\Models\Setting;
 use App\Services\DigiflazzService;
+use App\Services\RefundService;
 use App\Mail\TransactionSuccessMail;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 class ProcessTopupJob implements ShouldQueue
@@ -121,26 +119,13 @@ class ProcessTopupJob implements ShouldQueue
         }
     }
 
+    /**
+     * Refund/kredit otomatis saat topup gagal. Logikanya sekarang terpusat di RefundService
+     * supaya perilakunya identik dengan webhook Digiflazz dan force-refund oleh admin.
+     */
     private function handleFailedRefund($transaction)
     {
-        if ($transaction && $transaction->payment_method === 'wallet') {
-            DB::transaction(function () use ($transaction) {
-                $user = User::where('id', $transaction->user_id)->lockForUpdate()->first();
-                if ($user) {
-                    $balanceBefore = $user->balance;
-                    $user->balance += $transaction->amount;
-                    $user->save();
-
-                    WalletTransaction::create([
-                        'user_id' => $user->id,
-                        'type' => 'refund', // SUDAH DIKOREKSI MENJADI REFUND
-                        'amount' => $transaction->amount,
-                        'balance_before' => $balanceBefore,
-                        'balance_after' => $user->balance,
-                        'reference_id' => $transaction->trx_id
-                    ]);
-                }
-            });
-        }
+        if (!$transaction) return;
+        app(RefundService::class)->handle($transaction);
     }
 }

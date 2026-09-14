@@ -5,13 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
-use App\Models\WalletTransaction;
 use App\Models\Setting;
-use App\Models\User;
 use App\Mail\TransactionSuccessMail;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class DigiflazzWebhookController extends Controller
@@ -68,65 +64,7 @@ class DigiflazzWebhookController extends Controller
                 
             } elseif ($status === 'Gagal') {
                 $transaction->update(['status' => 'FAILED']);
-                
-                // 1. Jika bayar pakai Saldo Web ArTa Zone
-                if ($transaction->payment_method === 'wallet') {
-                    DB::transaction(function () use ($transaction) {
-                        $user = User::where('id', $transaction->user_id)->lockForUpdate()->first();
-                        if ($user) {
-                            $balanceBefore = $user->balance;
-                            $user->balance += $transaction->amount;
-                            $user->save();
-
-                            WalletTransaction::create([
-                                'user_id' => $user->id,
-                                'type' => 'refund',
-                                'amount' => $transaction->amount,
-                                'balance_before' => $balanceBefore,
-                                'balance_after' => $user->balance,
-                                'reference_id' => $transaction->trx_id
-                            ]);
-                            
-                            $transaction->update(['status_note' => 'Gagal di server. Dana otomatis dikembalikan ke Saldo ArTa Zone.']);
-                        }
-                    });
-                } 
-                // 2. Jika bayar pakai Midtrans (QRIS/E-Wallet dll) -> Tembak Refund API Secara Dinamis
-                else {
-                    try {
-                        $serverKey = $apiMode === 'production' 
-                            ? env('MIDTRANS_SERVER_KEY_PROD', env('MIDTRANS_SERVER_KEY')) 
-                            : env('MIDTRANS_SERVER_KEY_DEV', env('MIDTRANS_SERVER_KEY'));
-                            
-                        $midtransBaseUrl = $apiMode === 'production' 
-                            ? 'https://api.midtrans.com/v2' 
-                            : 'https://api.sandbox.midtrans.com/v2';
-
-                        $refundResponse = Http::withBasicAuth($serverKey, '')
-                            ->timeout(10)
-                            ->post("{$midtransBaseUrl}/{$transaction->trx_id}/refund", [
-                                'refund_key' => 'ref-' . $transaction->trx_id . '-' . time(),
-                                'amount' => $transaction->amount,
-                                'reason' => 'Stok produk kosong / Gangguan Server Provider'
-                            ]);
-
-                        // Jika Midtrans menyetujui Refund
-                        if ($refundResponse->successful()) {
-                            $transaction->update(['status_note' => 'Gagal di server. Uang berhasil di-Refund otomatis via Midtrans.']);
-                        } 
-                        // Jika Midtrans menolak (misal: fitur Refund API belum diaktifkan)
-                        else {
-                            $errorMsg = $refundResponse->json('status_message') ?? 'Fitur belum aktif / Ditolak Midtrans';
-                            Log::warning("Midtrans Refund Ditolak (TRX: {$transaction->trx_id}): {$errorMsg}");
-                            
-                            $transaction->update(['status_note' => "Gagal server. AUTO-REFUND DITOLAK ({$errorMsg}). HARAP REFUND MANUAL DI DASHBOARD MIDTRANS!"]);
-                        }
-                    } catch (\Exception $e) {
-                        // Jika koneksi internet ke Midtrans putus atau timeout
-                        Log::error('Midtrans Refund Exception: ' . $e->getMessage());
-                        $transaction->update(['status_note' => 'Gagal server. Sistem gagal menghubungi Midtrans. HARAP REFUND MANUAL DI DASHBOARD MIDTRANS!']);
-                    }
-                }
+                app(\App\Services\RefundService::class)->handle($transaction);
             }
         }
 

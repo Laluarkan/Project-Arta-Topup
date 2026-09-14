@@ -128,23 +128,11 @@ class TransactionController extends Controller
 
             $transaction->update(['status' => $newStatus]);
 
-            // Refund otomatis hanya jika status dipaksa ke FAILED dari status selain FAILED, DAN metode bayar wallet
-            if ($newStatus === 'FAILED' && $transaction->payment_method === 'wallet') {
-                $user = User::where('id', $transaction->user_id)->lockForUpdate()->first();
-                if ($user) {
-                    $balanceBefore = $user->balance;
-                    $user->balance += $transaction->amount;
-                    $user->save();
-
-                    WalletTransaction::create([
-                        'user_id' => $user->id,
-                        'type' => 'addition',
-                        'amount' => $transaction->amount,
-                        'balance_before' => $balanceBefore,
-                        'balance_after' => $user->balance,
-                        'reference_id' => $transaction->trx_id
-                    ]);
-                }
+            // Refund/kredit otomatis lewat RefundService yang sama dipakai di seluruh sistem
+            // (wallet dikembalikan, midtrans dicoba refund API asli, pakasir & fallback dikreditkan
+            // sebagai Saldo ArTa Zone, guest tanpa akun ditandai untuk refund manual).
+            if ($newStatus === 'FAILED') {
+                app(\App\Services\RefundService::class)->handle($transaction);
             }
 
             AuditLog::create([
