@@ -14,16 +14,36 @@ use Illuminate\Support\Facades\Log;
 
 class TransactionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $transactions = Transaction::with(['user', 'product'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-            
-        return response()->json([
-            'status' => 'success',
-            'data' => $transactions
-        ]);
+        try {
+            $transactions = Transaction::with(['user', 'product'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(100);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $transactions->items(),
+                'meta' => [
+                    'current_page' => $transactions->currentPage(),
+                    'last_page' => $transactions->lastPage(),
+                    'total' => $transactions->total(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            // Dicatat lengkap di log server supaya penyebab 500 bisa dilihat dari Render logs,
+            // bukan cuma "status 500" tanpa keterangan seperti sebelumnya.
+            Log::error('Gagal memuat daftar transaksi admin: ' . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal memuat daftar transaksi.',
+                // Detail error hanya ditampilkan kalau APP_DEBUG=true (aman untuk admin, tidak untuk publik).
+                'debug' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
     }
 
     public function retryTopup(Request $request, $id)
@@ -118,7 +138,7 @@ class TransactionController extends Controller
 
                     WalletTransaction::create([
                         'user_id' => $user->id,
-                        'type' => 'refund',
+                        'type' => 'addition',
                         'amount' => $transaction->amount,
                         'balance_before' => $balanceBefore,
                         'balance_after' => $user->balance,
