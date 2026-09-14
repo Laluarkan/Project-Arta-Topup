@@ -87,7 +87,7 @@ export default function LandingPage() {
 
       <div className="px-4 md:px-8 py-10 md:py-14 bg-white">
         <h2 className="font-display font-700 text-2xl md:text-3xl mb-1">Kategori Populer</h2>
-        <p className="text-ink/70 text-xs md:text-sm mb-6">Pilih produk, masukkan ID, langsung masuk.</p>
+        <p className="text-ink/80 text-xs md:text-sm mb-6">Pilih produk, masukkan ID, langsung masuk.</p>
         
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
           {categories.length > 0 ? (

@@ -1,8 +1,9 @@
 FROM php:8.2-fpm-alpine
 
-# Menginstal Nginx, Supervisor, dan ekstensi PostgreSQL
-RUN apk add --no-cache nginx supervisor postgresql-dev \
-    && docker-php-ext-install pdo pdo_pgsql
+# Menginstal Nginx, Supervisor, ekstensi PostgreSQL, dan library untuk GD (resize gambar)
+RUN apk add --no-cache nginx supervisor postgresql-dev libpng-dev libjpeg-turbo-dev freetype-dev zlib-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_pgsql gd
 
 # Mengatur direktori kerja
 WORKDIR /var/www/html

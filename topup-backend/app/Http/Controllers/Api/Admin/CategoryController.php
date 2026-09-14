@@ -10,6 +10,57 @@ use App\Models\AuditLog;
 
 class CategoryController extends Controller
 {
+    /**
+     * Resize gambar (bukan SVG) ke ukuran ikon standar sebelum disimpan.
+     * PageSpeed menemukan icon di-render 97x97 tapi file aslinya bisa 600x600+,
+     * buang-buang bandwidth. 128x128 cukup tajam untuk retina display di ukuran tampil kecil.
+     */
+    private function resizeImage(string $binaryData, string $mimeType, int $targetSize = 128): string
+    {
+        if (str_contains($mimeType, 'svg')) {
+            return $binaryData; // SVG itu vector, tidak perlu di-resize
+        }
+
+        $source = @imagecreatefromstring($binaryData);
+        if (!$source) {
+            return $binaryData; // Gagal parse gambar, kembalikan aslinya daripada error total
+        }
+
+        $width = imagesx($source);
+        $height = imagesy($source);
+
+        // Kalau gambar sudah lebih kecil dari target, tidak perlu di-upscale
+        if ($width <= $targetSize && $height <= $targetSize) {
+            imagedestroy($source);
+            return $binaryData;
+        }
+
+        $canvas = imagecreatetruecolor($targetSize, $targetSize);
+        imagesavealpha($canvas, true);
+        imagealphablending($canvas, false);
+        $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+        imagefill($canvas, 0, 0, $transparent);
+        imagealphablending($canvas, true);
+
+        // Resize proporsional (contain), taruh di tengah kanvas persegi
+        $ratio = min($targetSize / $width, $targetSize / $height);
+        $newWidth = (int) ($width * $ratio);
+        $newHeight = (int) ($height * $ratio);
+        $offsetX = (int) (($targetSize - $newWidth) / 2);
+        $offsetY = (int) (($targetSize - $newHeight) / 2);
+
+        imagecopyresampled($canvas, $source, $offsetX, $offsetY, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        ob_start();
+        imagepng($canvas, null, 6);
+        $result = ob_get_clean();
+
+        imagedestroy($source);
+        imagedestroy($canvas);
+
+        return $result ?: $binaryData;
+    }
+
     public function index()
     {
         $categories = Category::withCount('products')->get();
@@ -68,6 +119,14 @@ class CategoryController extends Controller
 
         $path = $request->file('icon')->store('categories', 'public');
 
+        // Resize hasil upload supaya tidak menyimpan file mentah yang jauh lebih besar dari kebutuhan tampilan.
+        // Pakai Storage::get()/put() (bukan path() + file_get_contents langsung) supaya kode ini tetap
+        // berfungsi kalau suatu saat disk 'public' dipindah ke cloud storage (S3, dll), bukan cuma disk lokal.
+        $mimeType = $request->file('icon')->getMimeType();
+        $original = \Illuminate\Support\Facades\Storage::disk('public')->get($path);
+        $resized = $this->resizeImage($original, $mimeType);
+        \Illuminate\Support\Facades\Storage::disk('public')->put($path, $resized);
+
         $category->update(['icon' => $path]);
 
         AuditLog::create([
@@ -112,7 +171,8 @@ class CategoryController extends Controller
                 };
 
                 $filename = 'categories/' . $category->id . '-' . time() . '.' . $extension;
-                \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $response->body());
+                $resizedBody = $this->resizeImage($response->body(), $contentType);
+                \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $resizedBody);
 
                 $category->update(['icon' => $filename]);
                 $migrated++;
@@ -158,7 +218,8 @@ class CategoryController extends Controller
                     // Langsung download & simpan lokal, JANGAN simpan URL Clearbit-nya
                     // (kalau disimpan sebagai URL, ini jadi hotlink baru yang lambat/rapuh lagi).
                     $filename = 'categories/' . $category->id . '-' . time() . '.png';
-                    \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $response->body());
+                    $resizedBody = $this->resizeImage($response->body(), 'image/png');
+                    \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $resizedBody);
                     $category->update(['icon' => $filename]);
                     $updatedCount++;
                     $found = true;
