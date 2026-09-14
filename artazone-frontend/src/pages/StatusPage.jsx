@@ -12,8 +12,11 @@ export default function StatusPage() {
   const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
     const fetchStatus = () => {
-      axios.get(`https://artazone-api.onrender.com/api/transactions/${id}`)
+      axios.get(`https://artazone-api.onrender.com/api/transactions/${id}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
         .then(res => {
           setTransaction(res.data.data);
           setIsLoading(false);

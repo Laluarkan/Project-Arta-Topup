@@ -274,10 +274,33 @@ class TransactionController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Transaksi tidak ditemukan'], 404);
         }
 
+        // Endpoint ini sengaja publik (tanpa wajib login) supaya guest checkout tetap bisa
+        // cek status pakai link trx_id-nya. Tapi kalau yang buka BUKAN pemilik transaksi
+        // (atau belum login), sembunyikan sebagian emailnya demi privasi.
+        $authUser = auth('sanctum')->user();
+        $isOwner = $authUser && $transaction->user_id && $authUser->id === $transaction->user_id;
+
+        if (!$isOwner && $transaction->guest_email) {
+            $transaction->guest_email = $this->maskEmail($transaction->guest_email);
+        }
+
         return response()->json([
             'status' => 'success',
             'data' => $transaction
         ]);
+    }
+
+    private function maskEmail(string $email): string
+    {
+        if (!str_contains($email, '@')) {
+            return $email;
+        }
+
+        [$name, $domain] = explode('@', $email, 2);
+        $visible = min(2, strlen($name));
+        $masked = substr($name, 0, $visible) . str_repeat('*', max(strlen($name) - $visible, 3));
+
+        return $masked . '@' . $domain;
     }
 
     public function getUserTransactions(Request $request)

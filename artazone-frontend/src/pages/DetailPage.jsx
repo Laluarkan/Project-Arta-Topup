@@ -420,7 +420,7 @@ export default function DetailPage() {
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row gap-3 mb-2">
             <input 
               className="flex-1 border-2 border-ink bg-ink/5 rounded-[10px] px-3.5 py-2 text-sm outline-none font-bold text-violet-700 cursor-not-allowed placeholder-ink/40"
               placeholder="Nickname Game (Otomatis)"
@@ -435,6 +435,15 @@ export default function DetailPage() {
               {isCheckingName ? 'Mengecek...' : 'Cek Nickname'}
             </button>
           </div>
+
+          {nickname.includes('(Mode Simulasi)') && (
+            <div className="flex items-start gap-2 p-3 bg-red-50 border-2 border-red-300 border-dashed rounded-lg mb-4">
+              <span className="text-red-600 font-bold text-sm shrink-0">⚠️</span>
+              <p className="text-xs text-red-700 font-bold">
+                Nickname tidak terverifikasi. Sistem gagal mengecek nickname asli — mohon cek ulang User ID/Zone ID Anda sebelum melanjutkan pembayaran, supaya top up tidak salah kirim.
+              </p>
+            </div>
+          )}
 
           <div className="mb-6">
             <input 
