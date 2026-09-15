@@ -17,9 +17,13 @@ class TransactionController extends Controller
     public function index(Request $request)
     {
         try {
-            $transactions = Transaction::with(['user', 'product'])
-                ->orderBy('created_at', 'desc')
-                ->paginate(100);
+            $query = Transaction::with(['user', 'product'])->orderBy('created_at', 'desc');
+
+            if ($request->boolean('needs_manual_refund')) {
+                $query->where('needs_manual_refund', true);
+            }
+
+            $transactions = $query->paginate(100);
 
             return response()->json([
                 'status' => 'success',
@@ -28,6 +32,7 @@ class TransactionController extends Controller
                     'current_page' => $transactions->currentPage(),
                     'last_page' => $transactions->lastPage(),
                     'total' => $transactions->total(),
+                    'pending_manual_refund_count' => Transaction::where('needs_manual_refund', true)->count(),
                 ],
             ]);
         } catch (\Exception $e) {
@@ -155,5 +160,32 @@ class TransactionController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Admin klik ini SETELAH benar-benar transfer manual ke rekening/e-wallet guest
+     * di luar sistem (WA konfirmasi, dsb). Ini cuma menandai supaya tidak nyangkut
+     * selamanya di daftar "Perlu Refund Manual" — TIDAK memindahkan uang otomatis.
+     */
+    public function markManualRefundDone(Request $request, $id)
+    {
+        $transaction = Transaction::where('trx_id', $id)->firstOrFail();
+
+        if (!$transaction->needs_manual_refund) {
+            return response()->json(['status' => 'error', 'message' => 'Transaksi ini tidak sedang ditandai perlu refund manual.'], 400);
+        }
+
+        $transaction->update([
+            'needs_manual_refund' => false,
+            'manual_refund_completed_at' => now(),
+        ]);
+
+        AuditLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'MANUAL_REFUND_COMPLETED',
+            'target' => 'TRX ' . $transaction->trx_id . ' ditandai sudah direfund manual ke guest'
+        ]);
+
+        return response()->json(['status' => 'success', 'message' => 'Ditandai sudah direfund manual.']);
     }
 }

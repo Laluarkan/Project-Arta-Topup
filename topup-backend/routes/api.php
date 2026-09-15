@@ -120,6 +120,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/transactions', [AdminTransactionController::class, 'index']);
         Route::put('/transactions/{id}/status', [AdminTransactionController::class, 'updateStatus']);
         Route::post('/transactions/{id}/retry', [AdminTransactionController::class, 'retryTopup']);
+        Route::post('/transactions/{id}/mark-refunded', [AdminTransactionController::class, 'markManualRefundDone']);
 
         Route::get('/users', [AdminUserController::class, 'index']);
         Route::put('/users/{id}', [AdminUserController::class, 'update']);

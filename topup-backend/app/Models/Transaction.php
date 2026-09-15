@@ -26,6 +26,8 @@ class Transaction extends Model
         'digiflazz_ref_id',
         'status',
         'status_note',
+        'needs_manual_refund',
+        'manual_refund_completed_at',
         'guest_email',
         'idempotency_key'
     ];

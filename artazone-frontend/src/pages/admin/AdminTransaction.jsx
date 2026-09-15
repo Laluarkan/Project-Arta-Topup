@@ -8,6 +8,8 @@ export default function AdminTransaction() {
   const [transactions, setTransactions] = useState([]);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [filterManualRefund, setFilterManualRefund] = useState(false);
+  const [pendingManualRefundCount, setPendingManualRefundCount] = useState(0);
   const [expandedId, setExpandedId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -15,10 +17,14 @@ export default function AdminTransaction() {
   const token = localStorage.getItem('token');
 
   const fetchTransactions = () => {
-    axios.get('https://artazone-api.onrender.com/api/admin/transactions', {
+    const query = filterManualRefund ? '?needs_manual_refund=1' : '';
+    axios.get(`https://artazone-api.onrender.com/api/admin/transactions${query}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
-    .then(res => setTransactions(res.data.data))
+    .then(res => {
+      setTransactions(res.data.data);
+      setPendingManualRefundCount(res.data.meta?.pending_manual_refund_count || 0);
+    })
     .catch(err => {
       console.error(err);
       const msg = err.response?.data?.debug || err.response?.data?.message || 'Gagal memuat data transaksi. Cek koneksi server backend.';
@@ -33,7 +39,19 @@ export default function AdminTransaction() {
       return;
     }
     fetchTransactions();
-  }, [navigate, token]);
+  }, [navigate, token, filterManualRefund]);
+
+  const handleMarkRefunded = async (id) => {
+    if (!window.confirm('Konfirmasi: Anda SUDAH benar-benar transfer manual ke pembeli guest ini di luar sistem? Aksi ini cuma menandai status, TIDAK memindahkan uang otomatis.')) return;
+    try {
+      await axios.post(`https://artazone-api.onrender.com/api/admin/transactions/${id}/mark-refunded`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchTransactions();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Gagal menandai refund.');
+    }
+  };
 
   const handleUpdateStatus = async (id, newStatus) => {
     if (!window.confirm(`PERINGATAN: Memaksa ubah status transaksi menjadi ${newStatus}? (Jika FAILED, saldo pembeli akan otomatis di-refund).`)) return;
@@ -97,6 +115,17 @@ export default function AdminTransaction() {
       <div className="flex-1 overflow-y-auto p-8 relative">
         <div className="flex justify-between items-center mb-8">
           <h1 className="font-display font-700 text-2xl">Manajemen Transaksi</h1>
+          <button
+            onClick={() => setFilterManualRefund(!filterManualRefund)}
+            className={`px-4 py-2 text-xs rounded-lg border-2 border-ink font-bold flex items-center gap-2 ${filterManualRefund ? 'bg-red-600 text-white' : 'bg-white'}`}
+          >
+            ⚠️ Perlu Refund Manual
+            {pendingManualRefundCount > 0 && (
+              <span className="bg-white text-red-600 rounded-full px-2 py-0.5 text-[10px] font-black">
+                {pendingManualRefundCount}
+              </span>
+            )}
+          </button>
         </div>
 
         <div className="card p-0 bg-white overflow-hidden flex flex-col h-[calc(100vh-140px)]">
@@ -149,7 +178,12 @@ export default function AdminTransaction() {
                     </td>
                     <td className="p-4 text-xs">{formatDate(trx.created_at)}</td>
                     <td className="p-4 font-mono text-xs" title={trx.trx_id}>{trx.trx_id.substring(0, 8)}...</td>
-                    <td className="p-4">{trx.user?.email || 'Guest'}</td>
+                    <td className="p-4">
+                      {trx.user?.email || 'Guest'}
+                      {trx.needs_manual_refund && (
+                        <span className="block text-[10px] font-black text-red-600 mt-0.5">⚠️ PERLU REFUND MANUAL</span>
+                      )}
+                    </td>
                     <td className="p-4 text-xs font-bold">{trx.product?.product_name || 'Produk Dihapus'}</td>
                     <td className="p-4 font-bold">{formatRupiah(trx.amount)}</td>
                     <td className="p-4 text-center">{getStatusBadge(trx.status)}</td>
@@ -199,6 +233,19 @@ export default function AdminTransaction() {
                           <p className="font-bold mb-1">{trx.status === 'FAILED' ? '⚠️ Alasan Gagal:' : 'Catatan Sistem:'}</p>
                           <p>{trx.status_note || 'Tidak ada catatan untuk transaksi ini.'}</p>
                         </div>
+                        {trx.needs_manual_refund && (
+                          <div className="mt-3 flex items-center justify-between p-3 bg-red-100 border-2 border-red-300 border-dashed rounded-lg">
+                            <p className="text-xs font-bold text-red-800">
+                              Transaksi guest ini butuh refund manual di luar sistem (transfer bank/e-wallet langsung ke pembeli).
+                            </p>
+                            <button
+                              onClick={() => handleMarkRefunded(trx.trx_id)}
+                              className="text-[10px] font-bold px-3 py-2 rounded bg-red-600 text-white hover:bg-red-700 whitespace-nowrap ml-3"
+                            >
+                              ✓ Tandai Sudah Direfund
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   )}

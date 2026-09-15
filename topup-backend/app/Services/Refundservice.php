@@ -102,6 +102,7 @@ class RefundService
 
     private function flagManualRefund(Transaction $transaction, string $gatewayName): void
     {
+        $transaction->update(['needs_manual_refund' => true]);
         $this->appendNote($transaction, "[PERLU REFUND MANUAL: transaksi guest via {$gatewayName}, tidak ada akun untuk auto-credit.]");
     }
 
