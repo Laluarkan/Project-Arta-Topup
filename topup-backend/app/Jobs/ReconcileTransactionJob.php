@@ -13,7 +13,6 @@ use App\Services\RefundService;
 use App\Mail\TransactionSuccessMail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Http\Request;
 
 /**
  * Dipanggil ULANG-ULANG (bukan sekali) untuk transaksi berstatus PROCESSING, yaitu
@@ -158,10 +157,7 @@ class ReconcileTransactionJob implements ShouldQueue
         /** @var Transaction $freshTransaction */
         $freshTransaction = $transaction->fresh() ?? $transaction;
 
-        $refundRequest = Request::create('/refund', 'POST', [
-            'trx_id' => $freshTransaction->trx_id,
-        ]);
-        app(RefundService::class)->handle($refundRequest);
+        app(RefundService::class)->handle($freshTransaction);
 
         Log::info("ReconcileTransactionJob: TRX {$transaction->trx_id} dikonfirmasi GAGAL via reconciliation, refund diproses. Catatan: {$note}");
     }
