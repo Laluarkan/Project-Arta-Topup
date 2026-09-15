@@ -59,24 +59,42 @@ class DigiflazzService
         return ['status' => false, 'message' => 'Gagal menarik saldo'];
     }
 
+    /**
+     * Cek ulang status transaksi yang SUDAH PERNAH dikirim ke Digiflazz, dipakai oleh
+     * ReconcileTransactionJob saat status awalnya ambigu (timeout/putus koneksi).
+     * Digiflazz mengidentifikasi transaksi berdasarkan ref_id, jadi memanggil endpoint
+     * yang sama ini dengan ref_id yang sudah ada TIDAK membuat transaksi baru / tidak
+     * mengirim ulang topup — cuma menanyakan status transaksi yang sudah ada.
+     *
+     * Return value membedakan dua hal penting:
+     * - 'ambiguous' => true  : kita masih TIDAK TAHU status sebenarnya (network error lagi).
+     *                          Jangan diputuskan apa-apa, coba lagi nanti.
+     * - 'ambiguous' => false : Digiflazz benar-benar merespons (meski isinya "belum ketemu"
+     *                          data transaksinya, itu tetap jawaban pasti, bukan ambigu).
+     */
     public function cekStatus($buyerSkuCode, $customerNo, $refId)
     {
         $config = $this->getApiConfig();
         $sign = md5($config['username'] . $config['key'] . $refId);
 
-        $response = Http::post('https://api.digiflazz.com/v1/transaction', [
-            'username' => $config['username'],
-            'buyer_sku_code' => $buyerSkuCode,
-            'customer_no' => $customerNo,
-            'ref_id' => $refId,
-            'sign' => $sign
-        ]);
-
-        if ($response->successful()) {
-            return ['status' => true, 'data' => $response->json('data')];
+        try {
+            $response = Http::timeout(30)->post('https://api.digiflazz.com/v1/transaction', [
+                'username' => $config['username'],
+                'buyer_sku_code' => $buyerSkuCode,
+                'customer_no' => $customerNo,
+                'ref_id' => $refId,
+                'sign' => $sign
+            ]);
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::warning("DigiflazzService::cekStatus timeout/putus koneksi untuk ref_id {$refId}: " . $e->getMessage());
+            return ['status' => false, 'ambiguous' => true, 'message' => 'Tidak bisa menghubungi Digiflazz untuk cek status.'];
         }
 
-        return ['status' => false, 'message' => 'Gagal mengecek status transaksi'];
+        if ($response->successful()) {
+            return ['status' => true, 'ambiguous' => false, 'data' => $response->json('data')];
+        }
+
+        return ['status' => false, 'ambiguous' => false, 'message' => 'Gagal mengecek status transaksi'];
     }
 
     public function requestDeposit($amount, $bank, $ownerName)
@@ -205,14 +223,33 @@ class DigiflazzService
 
         $sign = md5($config['username'] . $config['key'] . $refId);
 
-        $response = Http::timeout(60)->post('https://api.digiflazz.com/v1/transaction', [
-            'username' => $config['username'],
-            'buyer_sku_code' => $buyerSkuCode,
-            'customer_no' => $customerNo,
-            'ref_id' => $refId,
-            'sign' => $sign,
-            'testing' => $config['mode'] === 'development'
-        ]);
+        try {
+            $response = Http::timeout(60)->post('https://api.digiflazz.com/v1/transaction', [
+                'username' => $config['username'],
+                'buyer_sku_code' => $buyerSkuCode,
+                'customer_no' => $customerNo,
+                'ref_id' => $refId,
+                'sign' => $sign,
+                'testing' => $config['mode'] === 'development'
+            ]);
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            // PENTING: di titik ini kita TIDAK TAHU apakah Digiflazz sempat menerima &
+            // memproses request topup ini sebelum koneksinya putus. Jangan pernah anggap
+            // ini "gagal pasti" — itu bisa berarti refund uang user padahal barangnya
+            // sebenarnya sudah terkirim oleh Digiflazz (kerugian ganda buat kita).
+            // Caller (ProcessTopupJob) WAJIB menahan status ini dan memverifikasi ulang
+            // lewat cekStatus() sebelum memutuskan apa pun.
+            Log::critical("DigiflazzService::topup TIMEOUT/PUTUS KONEKSI untuk ref_id {$refId} — status transaksi di sisi Digiflazz TIDAK DIKETAHUI. Wajib direkonsiliasi, JANGAN auto-refund.", [
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'ambiguous' => true,
+                'message' => 'Tidak ada respons dari Digiflazz (timeout/putus koneksi). Status transaksi belum bisa dipastikan.',
+                'data' => null,
+            ];
+        }
 
         if (!$response->successful()) {
             $errorData = $response->json();
@@ -228,8 +265,11 @@ class DigiflazzService
                 }
             }
                 
+            // Digiflazz MERESPONS (walau isinya error, misal SKU salah/saldo kurang) —
+            // ini jawaban pasti dari mereka, bukan ambigu. Aman untuk dianggap gagal final.
             return [
                 'success' => false,
+                'ambiguous' => false,
                 'message' => 'API Error: ' . $errorMsg,
                 'data' => $errorData
             ];
@@ -239,6 +279,7 @@ class DigiflazzService
 
         return [
             'success' => true,
+            'ambiguous' => false,
             'message' => $responseData['message'] ?? 'Berhasil menembak API',
             'data' => $responseData
         ];

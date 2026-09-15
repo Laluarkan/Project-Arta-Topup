@@ -28,8 +28,18 @@ class Transaction extends Model
         'status_note',
         'needs_manual_refund',
         'manual_refund_completed_at',
+        'reconciliation_attempts',
+        'last_reconciliation_at',
+        'needs_reconciliation_review',
         'guest_email',
         'idempotency_key'
+    ];
+
+    protected $casts = [
+        'needs_manual_refund' => 'boolean',
+        'needs_reconciliation_review' => 'boolean',
+        'manual_refund_completed_at' => 'datetime',
+        'last_reconciliation_at' => 'datetime',
     ];
 
     public function user()

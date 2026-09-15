@@ -12,7 +12,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Jaring pengaman untuk transaksi yang macet di status PROCESSING (lihat
+        // ReconcileStuckTransactions untuk detail kenapa ini dibutuhkan).
+        $schedule->command('transactions:reconcile-stuck')
+            ->everyFiveMinutes()
+            ->withoutOverlapping();
     }
 
     /**

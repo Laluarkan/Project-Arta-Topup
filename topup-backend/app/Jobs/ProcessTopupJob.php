@@ -58,10 +58,22 @@ class ProcessTopupJob implements ShouldQueue
             $targetEmail = $transaction->guest_email ?? ($transaction->user ? $transaction->user->email : null);
 
             if (!$response['success']) {
-                if ($apiMode === 'development') {
+                // KASUS AMBIGU: request ke Digiflazz timeout/putus koneksi, kita TIDAK TAHU
+                // apakah mereka sempat memproses topup ini atau tidak. JANGAN langsung refund
+                // (bisa dobel rugi kalau ternyata barang sudah terkirim) — tahan di PROCESSING
+                // dan verifikasi ulang lewat ReconcileTransactionJob.
+                if (!empty($response['ambiguous']) && $apiMode === 'production') {
+                    $transaction->update([
+                        'status' => 'PROCESSING',
+                        'status_note' => 'Request ke Digiflazz timeout/putus koneksi. Menunggu konfirmasi status via reconciliation otomatis.',
+                    ]);
+                    \App\Jobs\ReconcileTransactionJob::dispatch($transaction->trx_id)->delay(now()->addMinutes(2));
+                    Log::warning("ProcessTopupJob: TRX {$this->trx_id} ambigu (timeout), dialihkan ke reconciliation. TIDAK direfund langsung.");
+                } elseif ($apiMode === 'development') {
                     $transaction->update(['status' => 'SUCCESS']);
                     if ($targetEmail) Mail::to($targetEmail)->send(new TransactionSuccessMail($transaction));
                 } else {
+                    // Digiflazz merespons pasti (walau isinya error) -> aman dianggap gagal final.
                     $transaction->update([
                         'status' => 'FAILED',
                         'status_note' => $response['message'] ?? 'Gagal memproses ke Provider'
