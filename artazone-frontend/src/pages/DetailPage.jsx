@@ -52,7 +52,7 @@ export default function DetailPage() {
 
   const token = localStorage.getItem('token');
   const [paymentMethod, setPaymentMethod] = useState(token ? 'wallet' : 'qris');
-  const [pakasirPayment, setPakasirPayment] = useState(null); // { trxId, paymentNumber, totalPayment, expiredAt }
+  const [pakasirPayment, setPakasirPayment] = useState(null); 
   const [isPolling, setIsPolling] = useState(false);
   const [activeGateways, setActiveGateways] = useState({ wallet: true, midtrans: true, pakasir: true });
 
@@ -61,7 +61,6 @@ export default function DetailPage() {
       .then(res => {
         if (res.data.status === 'success') {
           setActiveGateways(res.data.data);
-          // Kalau metode bayar yang lagi kepilih ternyata mati, geser otomatis ke yang masih aktif
           setPaymentMethod(prev => {
             const stillActive = res.data.data[prev === 'qris' ? 'midtrans' : prev];
             if (stillActive) return prev;
@@ -72,7 +71,7 @@ export default function DetailPage() {
           });
         }
       })
-      .catch(() => {}); // kalau gagal fetch, biarkan default semua aktif
+      .catch(() => {});
   }, [token]);
 
   useEffect(() => {
@@ -166,7 +165,6 @@ export default function DetailPage() {
     setPromoCodeInput('');
   };
 
-  // Polling status transaksi Pakasir setiap 4 detik sampai PAID atau timeout 10 menit
   const startPollingPakasir = (trxId) => {
     setIsPolling(true);
     let elapsed = 0;
@@ -183,22 +181,18 @@ export default function DetailPage() {
       } catch (err) {
         // Diamkan error polling sesaat, coba lagi di interval berikutnya
       }
-      if (elapsed >= 600000) { // 10 menit
+      if (elapsed >= 600000) { 
         clearInterval(interval);
         setIsPolling(false);
       }
     }, 4000);
   };
 
-  // Idempotency key: dibuat sekali per "niat checkout", regenerate kalau produk yang dipilih berubah.
-  // Dipakai backend untuk mendeteksi kalau request yang sama terkirim dua kali (double-klik/retry network).
   const idempotencyKeyRef = useRef(crypto.randomUUID());
   useEffect(() => {
     idempotencyKeyRef.current = crypto.randomUUID();
   }, [selectedProduct]);
 
-  // Guard sinkron ekstra selain `disabled` di tombol, supaya klik super cepat
-  // sebelum re-render sempat commit tetap tidak lolos jadi 2 request.
   const isSubmittingRef = useRef(false);
 
   const handleCheckout = async () => {
@@ -306,6 +300,8 @@ export default function DetailPage() {
     let discountAmount = appliedPromo.type === 'percent' ? basePrice * (appliedPromo.value / 100) : appliedPromo.value;
     finalPrice = Math.max(0, basePrice - discountAmount);
   }
+
+  const isCheckingSupported = categoryName.toUpperCase().includes('MOBILE LEGENDS') || categoryName.toUpperCase().includes('FREE FIRE');
 
   return (
     <div className="flex-1 overflow-y-auto bg-white flex flex-col">
@@ -420,32 +416,36 @@ export default function DetailPage() {
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 mb-2">
-            <input 
-              className="flex-1 border-2 border-ink bg-ink/5 rounded-[10px] px-3.5 py-2 text-sm outline-none font-bold text-violet-700 cursor-not-allowed placeholder-ink/40"
-              placeholder="Nickname Game (Otomatis)"
-              value={nickname}
-              readOnly
-            />
-            <button 
-              onClick={handleCheckNickname}
-              disabled={!userId || (inputConfig.type !== 'single' && !zoneId) || isCheckingName}
-              className="btn-primary w-full sm:w-auto px-4 py-2 text-sm whitespace-nowrap disabled:opacity-50"
-            >
-              {isCheckingName ? 'Mengecek...' : 'Cek Nickname'}
-            </button>
-          </div>
+          {isCheckingSupported && (
+            <>
+              <div className="flex flex-col sm:flex-row gap-3 mb-2">
+                <input 
+                  className="flex-1 border-2 border-ink bg-ink/5 rounded-[10px] px-3.5 py-2 text-sm outline-none font-bold text-violet-700 cursor-not-allowed placeholder-ink/40"
+                  placeholder="Nickname Game (Otomatis)"
+                  value={nickname}
+                  readOnly
+                />
+                <button 
+                  onClick={handleCheckNickname}
+                  disabled={!userId || (inputConfig.type !== 'single' && !zoneId) || isCheckingName}
+                  className="btn-primary w-full sm:w-auto px-4 py-2 text-sm whitespace-nowrap disabled:opacity-50"
+                >
+                  {isCheckingName ? 'Mengecek...' : 'Cek Nickname'}
+                </button>
+              </div>
 
-          {nickname.includes('(Mode Simulasi)') && (
-            <div className="flex items-start gap-2 p-3 bg-red-50 border-2 border-red-300 border-dashed rounded-lg mb-4">
-              <span className="text-red-600 font-bold text-sm shrink-0">⚠️</span>
-              <p className="text-xs text-red-700 font-bold">
-                Nickname tidak terverifikasi. Sistem gagal mengecek nickname asli — mohon cek ulang User ID/Zone ID Anda sebelum melanjutkan pembayaran, supaya top up tidak salah kirim.
-              </p>
-            </div>
+              {nickname.includes('(Mode Simulasi)') && (
+                <div className="flex items-start gap-2 p-3 bg-red-50 border-2 border-red-300 border-dashed rounded-lg mb-4">
+                  <span className="text-red-600 font-bold text-sm shrink-0">⚠️</span>
+                  <p className="text-xs text-red-700 font-bold">
+                    Nickname tidak terverifikasi. Sistem gagal mengecek nickname asli — mohon cek ulang User ID/Zone ID Anda sebelum melanjutkan pembayaran, supaya top up tidak salah kirim.
+                  </p>
+                </div>
+              )}
+            </>
           )}
 
-          <div className="mb-6">
+          <div className="mb-6 mt-4">
             <input 
               type="email"
               className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600" 

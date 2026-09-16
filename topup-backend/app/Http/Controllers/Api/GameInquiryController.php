@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use App\Models\Setting;
 
 class GameInquiryController extends Controller
 {
@@ -21,6 +22,10 @@ class GameInquiryController extends Controller
         $userId = $request->user_id;
         $zoneId = $request->zone_id;
         $nickname = null;
+
+        // Cek mode aplikasi (production / development)
+        $dbMode = Setting::where('key', 'api_mode')->value('value');
+        $apiMode = $dbMode ?? (env('APP_ENV') === 'production' ? 'production' : 'development');
 
         try {
             // 1. Mencoba menembak API Gratisan Komunitas
@@ -43,7 +48,7 @@ class GameInquiryController extends Controller
                 }
             } 
             
-            // 2. Jika API Gratis Mengembalikan Data
+            // 2. Jika API Gratis Mengembalikan Data Asli
             if ($nickname) {
                 return response()->json([
                     'status' => 'success',
@@ -53,8 +58,16 @@ class GameInquiryController extends Controller
                 ]);
             }
 
-            // 3. FALLBACK MOCK (Jaring Pengaman saat API Down)
-            // Jika API mati/error 522, kita buatkan nickname palsu agar UI Frontend tetap bisa dites
+            // 3. PENCEGAHAN DI MODE PRODUCTION
+            // Jika mode API adalah production dan tidak ada nama yang ditemukan, lempar error.
+            if ($apiMode === 'production') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Nickname tidak ditemukan. Pastikan ID Anda sudah benar atau layanan pengecekan sedang gangguan.'
+                ], 404);
+            }
+
+            // 4. FALLBACK MOCK (Jaring Pengaman KHUSUS mode Development)
             $dummyName = "Player_" . substr($userId, 0, 4) . "_Pro";
             
             return response()->json([
@@ -65,7 +78,15 @@ class GameInquiryController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            // Jika terjadi Timeout atau Server Down, tetap kembalikan data Dummy
+            // Cegah fallback nama palsu jika terjadi timeout di production
+            if ($apiMode === 'production') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gagal menghubungi server pengecekan nickname. Silakan cek kembali ID Anda.'
+                ], 500);
+            }
+
+            // Jika terjadi Timeout atau Server Down di Development, kembalikan data Dummy
             $dummyName = "Player_" . substr($userId, 0, 4) . "_Pro";
             
             return response()->json([
