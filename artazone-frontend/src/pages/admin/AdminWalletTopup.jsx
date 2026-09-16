@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/client';
 import AdminSidebar from '../../components/AdminSidebar';
+import { resolveIconUrl } from '../../utils/resolveIconUrl';
 
 const formatRupiah = (num) => 'Rp' + Number(num || 0).toLocaleString('id-ID');
 
@@ -128,10 +129,10 @@ export default function AdminWalletTopup() {
                 <div className="flex flex-col items-center gap-2">
                   {t.payment_method === 'manual' && t.proof_image_path && (
                     <img
-                      src={`/storage/${t.proof_image_path}`}
+                      src={resolveIconUrl(t.proof_image_path)}
                       alt="Bukti transfer"
                       className="w-24 h-24 object-cover rounded-lg border-2 border-ink cursor-pointer"
-                      onClick={() => setPreviewImage(`/storage/${t.proof_image_path}`)}
+                      onClick={() => setPreviewImage(resolveIconUrl(t.proof_image_path))}
                     />
                   )}
                   {t.payment_method === 'manual' && t.status === 'PENDING' ? (

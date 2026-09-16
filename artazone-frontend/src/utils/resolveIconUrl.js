@@ -1,9 +1,15 @@
 import { API_ROOT_URL } from '../api/client';
 
+// URL dasar untuk file yang disimpan sebagai path relatif (bukan URL http penuh).
+// Setelah migrasi ke Cloudflare R2, file-file baru disimpan di sana, jadi base URL-nya
+// diarahkan ke bucket publik R2 (VITE_R2_PUBLIC_URL). Kalau env ini belum diisi (misal
+// saat development lokal belum setup R2), fallback ke /storage backend seperti semula.
+const RELATIVE_PATH_BASE_URL = import.meta.env.VITE_R2_PUBLIC_URL || `${API_ROOT_URL}/storage`;
+
 /**
- * Resolve URL icon kategori/produk.
+ * Resolve URL icon kategori/produk maupun file upload lain (misal bukti transfer).
  * - Kalau sudah URL lengkap (http/https) -> pakai apa adanya (untuk data lama yang belum dimigrasi).
- * - Kalau path lokal (hasil upload/migrasi ke storage sendiri) -> gabung dengan base URL storage backend.
+ * - Kalau path lokal (hasil upload/migrasi ke storage sendiri) -> gabung dengan base URL storage.
  *
  * @param {string} icon - path/URL icon dari API
  * @param {number} [size] - lebar target dalam px (opsional). Kalau diisi, gambar akan
@@ -16,7 +22,7 @@ export function resolveIconUrl(icon, size) {
 
   const fullUrl = icon.startsWith('http://') || icon.startsWith('https://')
     ? icon
-    : `${API_ROOT_URL}/storage/${icon}`;
+    : `${RELATIVE_PATH_BASE_URL}/${icon}`;
 
   if (!size) return fullUrl;
 

@@ -161,7 +161,7 @@ class WalletController extends Controller
 
         $user = $request->user();
 
-        $path = $request->file('proof_image')->store('wallet-topup-proofs', 'public');
+        $path = $request->file('proof_image')->store('wallet-topup-proofs', config('filesystems.uploads_disk'));
 
         $topup = WalletTopup::create([
             'user_id' => $user->id,

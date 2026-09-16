@@ -17,6 +17,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Disk untuk file upload dari user (icon kategori, bukti transfer, dll)
+    |--------------------------------------------------------------------------
+    |
+    | Sengaja dipisah dari 'default' di atas supaya bisa diarahkan ke 'r2'
+    | di production (disk container Render ephemeral / hilang tiap redeploy),
+    | tapi tetap bisa dites lokal pakai 'public' tanpa perlu setup R2 dulu
+    | kalau UPLOADS_DISK belum diisi di .env development.
+    |
+    */
+
+    'uploads_disk' => env('UPLOADS_DISK', 'public'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
@@ -53,6 +67,22 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => false,
+        ],
+
+        // Cloudflare R2, dipakai untuk semua file upload user di production (lihat
+        // 'uploads_disk' di atas). R2 kompatibel S3 jadi drivernya tetap 's3', cuma
+        // endpoint & kredensialnya beda dari AWS S3 asli -> makanya dipisah dari
+        // disk 's3' di atas, biar tidak tertukar/ambigu kalau suatu saat butuh dua-duanya.
+        'r2' => [
+            'driver' => 's3',
+            'key' => env('R2_ACCESS_KEY_ID'),
+            'secret' => env('R2_SECRET_ACCESS_KEY'),
+            'region' => 'auto',
+            'bucket' => env('R2_BUCKET'),
+            'url' => env('R2_PUBLIC_URL'),
+            'endpoint' => env('R2_ENDPOINT'),
+            'use_path_style_endpoint' => true,
             'throw' => false,
         ],
 

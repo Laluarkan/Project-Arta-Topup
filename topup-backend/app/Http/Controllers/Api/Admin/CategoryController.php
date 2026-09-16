@@ -114,18 +114,18 @@ class CategoryController extends Controller
 
         // Hapus file lama kalau itu file lokal (bukan URL eksternal), supaya storage tidak menumpuk sampah
         if ($category->icon && !str_starts_with($category->icon, 'http')) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($category->icon);
+            \Illuminate\Support\Facades\Storage::disk(config('filesystems.uploads_disk'))->delete($category->icon);
         }
 
-        $path = $request->file('icon')->store('categories', 'public');
+        $path = $request->file('icon')->store('categories', config('filesystems.uploads_disk'));
 
         // Resize hasil upload supaya tidak menyimpan file mentah yang jauh lebih besar dari kebutuhan tampilan.
         // Pakai Storage::get()/put() (bukan path() + file_get_contents langsung) supaya kode ini tetap
-        // berfungsi kalau suatu saat disk 'public' dipindah ke cloud storage (S3, dll), bukan cuma disk lokal.
+        // berfungsi baik disk-nya 'public' (lokal) maupun 'r2' (Cloudflare R2 di production).
         $mimeType = $request->file('icon')->getMimeType();
-        $original = \Illuminate\Support\Facades\Storage::disk('public')->get($path);
+        $original = \Illuminate\Support\Facades\Storage::disk(config('filesystems.uploads_disk'))->get($path);
         $resized = $this->resizeImage($original, $mimeType);
-        \Illuminate\Support\Facades\Storage::disk('public')->put($path, $resized);
+        \Illuminate\Support\Facades\Storage::disk(config('filesystems.uploads_disk'))->put($path, $resized);
 
         $category->update(['icon' => $path]);
 
@@ -172,7 +172,7 @@ class CategoryController extends Controller
 
                 $filename = 'categories/' . $category->id . '-' . time() . '.' . $extension;
                 $resizedBody = $this->resizeImage($response->body(), $contentType);
-                \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $resizedBody);
+                \Illuminate\Support\Facades\Storage::disk(config('filesystems.uploads_disk'))->put($filename, $resizedBody);
 
                 $category->update(['icon' => $filename]);
                 $migrated++;
@@ -219,7 +219,7 @@ class CategoryController extends Controller
                     // (kalau disimpan sebagai URL, ini jadi hotlink baru yang lambat/rapuh lagi).
                     $filename = 'categories/' . $category->id . '-' . time() . '.png';
                     $resizedBody = $this->resizeImage($response->body(), 'image/png');
-                    \Illuminate\Support\Facades\Storage::disk('public')->put($filename, $resizedBody);
+                    \Illuminate\Support\Facades\Storage::disk(config('filesystems.uploads_disk'))->put($filename, $resizedBody);
                     $category->update(['icon' => $filename]);
                     $updatedCount++;
                     $found = true;
