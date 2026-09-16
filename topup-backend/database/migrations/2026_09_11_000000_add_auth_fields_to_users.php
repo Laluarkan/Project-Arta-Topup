@@ -9,16 +9,30 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->timestamp('terms_accepted_at')->nullable()->after('is_active');
-            $table->timestamp('last_login_at')->nullable()->after('terms_accepted_at');
-            $table->string('last_login_ip', 45)->nullable()->after('last_login_at');
+            if (!Schema::hasColumn('users', 'terms_accepted_at')) {
+                $table->timestamp('terms_accepted_at')->nullable()->after('is_active');
+            }
+            if (!Schema::hasColumn('users', 'last_login_at')) {
+                $table->timestamp('last_login_at')->nullable()->after('terms_accepted_at');
+            }
+            if (!Schema::hasColumn('users', 'last_login_ip')) {
+                $table->string('last_login_ip', 45)->nullable()->after('last_login_at');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['terms_accepted_at', 'last_login_at', 'last_login_ip']);
+            if (Schema::hasColumn('users', 'terms_accepted_at')) {
+                $table->dropColumn('terms_accepted_at');
+            }
+            if (Schema::hasColumn('users', 'last_login_at')) {
+                $table->dropColumn('last_login_at');
+            }
+            if (Schema::hasColumn('users', 'last_login_ip')) {
+                $table->dropColumn('last_login_ip');
+            }
         });
     }
 };

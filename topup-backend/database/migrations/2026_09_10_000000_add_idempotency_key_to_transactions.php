@@ -8,15 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            $table->string('idempotency_key')->nullable()->unique()->after('trx_id');
-        });
+        if (!Schema::hasColumn('transactions', 'idempotency_key')) {
+            Schema::table('transactions', function (Blueprint $table) {
+                $table->string('idempotency_key')->nullable()->unique()->after('trx_id');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('transactions', function (Blueprint $table) {
-            $table->dropColumn('idempotency_key');
-        });
+        if (Schema::hasColumn('transactions', 'idempotency_key')) {
+            Schema::table('transactions', function (Blueprint $table) {
+                $table->dropColumn('idempotency_key');
+            });
+        }
     }
 };
