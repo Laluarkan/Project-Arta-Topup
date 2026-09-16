@@ -34,6 +34,7 @@ Route::get('/health/worker', [HealthController::class, 'checkWorker']);
 Route::middleware('throttle:5,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/verify-2fa', [AuthController::class, 'verify2fa']);
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::post('/email/resend-public', [AuthController::class, 'resendVerificationPublic']);
