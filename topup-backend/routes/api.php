@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\GameInquiryController;
 use App\Http\Controllers\Api\PakasirWebhookController;
 use App\Http\Controllers\Api\WalletController;
 use App\Http\Controllers\Api\Admin\WalletTopupController;
+use App\Http\Controllers\Api\Admin\ReconciliationController;
 use App\Http\Controllers\Api\HealthController;
 use App\Services\DigiflazzService;
 use Illuminate\Support\Facades\Schema;
@@ -106,6 +107,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware(['role:super-admin|admin'])->prefix('admin')->group(function () {
+        Route::get('/reconciliation', [ReconciliationController::class, 'index']);
+        Route::get('/reconciliation/export', [ReconciliationController::class, 'export']);
         Route::get('/dashboard', [AdminDashboardController::class, 'index']);
 
         Route::get('/wallet-topups', [WalletTopupController::class, 'index']);

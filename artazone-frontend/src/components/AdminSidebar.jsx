@@ -5,6 +5,7 @@ export default function AdminSidebar() {
 
   const menuItems = [
     { name: 'Admin Dashboard', path: '/admin/dashboard' },
+    { name: 'Rekonsiliasi Keuangan', path: '/admin/reconciliation' },
     { name: 'Managemen Kategory', path: '/admin/categories' },
     { name: 'Manajemen Produk', path: '/admin/products' },
     { name: 'Manajemen Transaksi', path: '/admin/transactions' },

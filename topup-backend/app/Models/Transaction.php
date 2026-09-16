@@ -19,6 +19,7 @@ class Transaction extends Model
         'user_game_id',
         'zone_id',
         'amount',
+        'provider_price_snapshot',
         'discount_amount',
         'voucher_code',
         'payment_method',

@@ -28,6 +28,7 @@ const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 
 const AdminWalletTopup = lazy(() => import('./pages/admin/AdminWalletTopup'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminReconciliation = lazy(() => import('./pages/admin/AdminReconciliation'));
 const AdminProduct = lazy(() => import('./pages/admin/AdminProduct'));
 const AdminTransaction = lazy(() => import('./pages/admin/AdminTransaction'));
 const AdminUser = lazy(() => import('./pages/admin/AdminUser'));
@@ -77,6 +78,7 @@ function AppContent() {
         <Route path="/privacy" element={<PrivacyPage />} />
 
         <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="/admin/reconciliation" element={<AdminRoute><AdminReconciliation /></AdminRoute>} />
         <Route path="/admin/categories" element={<AdminRoute><AdminCategory /></AdminRoute>} />
         <Route path="/admin/products" element={<AdminRoute><AdminProduct /></AdminRoute>} />
         <Route path="/admin/transactions" element={<AdminRoute><AdminTransaction /></AdminRoute>} />
