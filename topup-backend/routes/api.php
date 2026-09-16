@@ -24,8 +24,12 @@ use App\Http\Controllers\Api\GameInquiryController;
 use App\Http\Controllers\Api\PakasirWebhookController;
 use App\Http\Controllers\Api\WalletController;
 use App\Http\Controllers\Api\Admin\WalletTopupController;
+use App\Http\Controllers\Api\HealthController;
 use App\Services\DigiflazzService;
 use Illuminate\Support\Facades\Schema;
+
+// Endpoint Health Check untuk UptimeRobot
+Route::get('/health/worker', [HealthController::class, 'checkWorker']);
 
 Route::middleware('throttle:5,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
