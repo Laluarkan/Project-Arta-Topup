@@ -49,7 +49,6 @@ class AuthController extends Controller
 
         $user->assignRole('member');
 
-        // Kirim email verifikasi (dikirim lewat queue, tidak memperlambat response)
         $user->sendEmailVerificationNotification();
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -105,6 +104,30 @@ class AuthController extends Controller
             ], 403);
         }
 
+        if ($user->hasRole('admin') || $user->hasRole('super-admin')) {
+            $otp = sprintf("%06d", mt_rand(1, 999999)); 
+            
+            $user->update([
+                'two_factor_code' => $otp,
+                'two_factor_expires_at' => now()->addMinutes(10)
+            ]);
+
+            try {
+                \Illuminate\Support\Facades\Mail::to($user->email)->queue(new \App\Mail\AdminLogin2FAMail($otp, $user->name));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Gagal mengirim email 2FA: ' . $e->getMessage());
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Untuk keamanan, masukkan kode OTP yang dikirim ke email Anda.',
+                'data' => [
+                    'requires_2fa' => true,
+                    'email' => $user->email
+                ]
+            ]);
+        }
+
         $user->update([
             'last_login_at' => now(),
             'last_login_ip' => $request->ip(),
@@ -112,6 +135,43 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        $user->load('roles');
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Login berhasil',
+            'data' => [
+                'user' => $user,
+                'token' => $token
+            ]
+        ]);
+    }
+
+    public function verify2fa(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required|string|size:6'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || $user->two_factor_code !== $request->otp) {
+            return response()->json(['status' => 'error', 'message' => 'Kode OTP salah atau tidak valid.'], 401);
+        }
+
+        if (now()->greaterThan($user->two_factor_expires_at)) {
+            return response()->json(['status' => 'error', 'message' => 'Kode OTP sudah kedaluwarsa. Silakan login ulang.'], 401);
+        }
+
+        $user->update([
+            'two_factor_code' => null,
+            'two_factor_expires_at' => null,
+            'last_login_at' => now(),
+            'last_login_ip' => $request->ip(),
+        ]);
+
+        $token = $user->createToken('auth_token')->plainTextToken;
         $user->load('roles');
 
         return response()->json([
@@ -134,18 +194,12 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Kirim ulang link verifikasi TANPA perlu login dulu.
-     * Dipakai di halaman "Cek Email" dan popup peringatan saat login gagal karena belum verifikasi.
-     */
     public function resendVerificationPublic(Request $request)
     {
         $request->validate(['email' => 'required|email|max:255']);
 
         $user = User::where('email', $request->email)->first();
 
-        // Balas sukses generik walau user tidak ditemukan (konsisten dengan forgotPassword,
-        // mencegah orang menebak-nebak email mana yang terdaftar).
         if (!$user || $user->hasVerifiedEmail()) {
             return response()->json([
                 'status' => 'success',
@@ -174,10 +228,6 @@ class AuthController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Link verifikasi baru sudah dikirim ke email Anda.']);
     }
 
-    /**
-     * Endpoint yang dipanggil oleh frontend React via Axios saat link email diklik.
-     * Tidak boleh mereturn redirect(), harus return JSON.
-     */
     public function verifyEmail(Request $request, $id, $hash)
     {
         $user = User::findOrFail($id);
@@ -199,17 +249,12 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Kirim link reset password ke email.
-     */
     public function forgotPassword(Request $request)
     {
         $request->validate(['email' => 'required|email|max:255']);
 
         $user = User::where('email', $request->email)->first();
 
-        // Selalu balas sukses walau email tidak ditemukan,
-        // supaya orang tidak bisa "menebak" email mana saja yang terdaftar (email enumeration).
         if (!$user) {
             return response()->json([
                 'status' => 'success',
@@ -238,9 +283,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Ganti password pakai token dari email.
-     */
     public function resetPassword(Request $request)
     {
         $request->validate([
@@ -255,7 +297,6 @@ class AuthController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Token reset tidak valid.'], 400);
         }
 
-        // Token kedaluwarsa setelah 60 menit
         if (now()->diffInMinutes($record->created_at) > 60) {
             DB::table('password_reset_tokens')->where('email', $request->email)->delete();
             return response()->json(['status' => 'error', 'message' => 'Token reset sudah kedaluwarsa. Silakan minta link baru.'], 400);
@@ -268,7 +309,6 @@ class AuthController extends Controller
 
         $user->update(['password' => Hash::make($request->password)]);
 
-        // Hapus semua token API lama supaya sesi lama otomatis logout demi keamanan
         $user->tokens()->delete();
 
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();

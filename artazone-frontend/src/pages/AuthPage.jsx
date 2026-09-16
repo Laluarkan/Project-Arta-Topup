@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import api from '../api/client';
 
-// Komponen Popup Kecil
 const PopupModal = ({ isOpen, message, onClose, type = 'error', extraAction }) => {
   if (!isOpen) return null;
   return (
@@ -30,6 +29,8 @@ const PopupModal = ({ isOpen, message, onClose, type = 'error', extraAction }) =
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
+  const [is2FA, setIs2FA] = useState(false);
+  const [otp, setOtp] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -45,7 +46,6 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Tangani hasil klik link verifikasi email (?verified=1 / ?verified=0)
   useEffect(() => {
     const verified = searchParams.get('verified');
     if (verified === '1') {
@@ -57,6 +57,31 @@ export default function AuthPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (is2FA) {
+      if (!otp || otp.length !== 6) {
+        setPopup({ isOpen: true, message: 'Masukkan 6 digit OTP yang valid.', type: 'error' });
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const res = await api.post('/verify-2fa', { email, otp });
+        if (res.data.status === 'success') {
+          localStorage.setItem('token', res.data.data.token);
+          localStorage.setItem('user', JSON.stringify(res.data.data.user));
+          navigate('/');
+        }
+      } catch (err) {
+        setPopup({
+          isOpen: true,
+          message: err.response?.data?.message || 'Gagal memverifikasi OTP.',
+          type: 'error'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
 
     if (!email || !password || (!isLogin && (!name || !phone))) {
       setPopup({ isOpen: true, message: 'Harap isi semua kolom yang diperlukan.', type: 'error' });
@@ -98,8 +123,13 @@ export default function AuthPage() {
 
       if (res.data.status === 'success') {
         if (!isLogin) {
-          // Registrasi berhasil: JANGAN auto-login. Arahkan ke halaman "cek email" dulu.
           navigate(`/verify-email-notice?email=${encodeURIComponent(email)}`);
+          return;
+        }
+
+        if (res.data.data.requires_2fa) {
+          setIs2FA(true);
+          setPopup({ isOpen: true, message: res.data.message, type: 'success' });
           return;
         }
 
@@ -112,7 +142,6 @@ export default function AuthPage() {
       const firstError = errors ? Object.values(errors)[0][0] : null;
       const timeoutMessage = err.code === 'ECONNABORTED' ? 'Server terlalu lama merespons. Coba lagi beberapa saat lagi.' : null;
 
-      // Kasus khusus: login ditolak karena email belum diverifikasi
       if (err.response?.data?.email_verified === false) {
         setUnverifiedEmail(err.response.data.data?.email || email);
         setPopup({
@@ -185,98 +214,130 @@ export default function AuthPage() {
         </Link>
 
         <form onSubmit={handleSubmit} className="card p-7 w-full max-w-sm">
-          <div className="flex gap-2 mb-6">
-            <button
-              type="button"
-              onClick={() => setIsLogin(true)}
-              className={`flex-1 py-2 text-xs transition-colors ${isLogin ? 'btn-primary' : 'btn-ghost'}`}
-            >
-              Masuk
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsLogin(false)}
-              className={`flex-1 py-2 text-xs transition-colors ${!isLogin ? 'btn-primary' : 'btn-ghost'}`}
-            >
-              Daftar
-            </button>
-          </div>
+          {!is2FA && (
+            <div className="flex gap-2 mb-6">
+              <button
+                type="button"
+                onClick={() => { setIsLogin(true); setIs2FA(false); }}
+                className={`flex-1 py-2 text-xs transition-colors ${isLogin ? 'btn-primary' : 'btn-ghost'}`}
+              >
+                Masuk
+              </button>
+              <button
+                type="button"
+                onClick={() => { setIsLogin(false); setIs2FA(false); }}
+                className={`flex-1 py-2 text-xs transition-colors ${!isLogin ? 'btn-primary' : 'btn-ghost'}`}
+              >
+                Daftar
+              </button>
+            </div>
+          )}
 
-          <div className="space-y-3">
-            {!isLogin && (
-              <>
-                <input
-                  className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
-                  placeholder="Nama Lengkap"
-                  value={name} onChange={(e) => setName(e.target.value)}
-                />
-                <input
-                  className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
-                  placeholder="Nomor HP/WhatsApp"
-                  type="tel"
-                  value={phone} onChange={(e) => setPhone(e.target.value)}
-                />
-              </>
-            )}
-            <input
-              className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
-              placeholder="Email"
-              type="email"
-              value={email} onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-              className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
-              placeholder="Password"
-              type="password"
-              value={password} onChange={(e) => setPassword(e.target.value)}
-            />
-
-            {!isLogin && (
-              <>
-                <input
-                  className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
-                  placeholder="Konfirmasi Password"
-                  type="password"
-                  value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)}
-                />
-                <input
-                  className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
-                  placeholder="Kode Referral (opsional)"
-                  value={referralCode} onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                />
-                <label className="flex items-start gap-2 text-xs text-ink/60 pt-1 cursor-pointer">
+          {is2FA ? (
+            <div className="space-y-4 text-center">
+              <h3 className="font-bold text-lg text-ink">Verifikasi Keamanan</h3>
+              <p className="text-xs text-ink/70 px-4 pb-2">
+                Kami telah mengirimkan 6 digit kode keamanan ke <strong>{email}</strong>.
+              </p>
+              <input
+                className="w-full border-2 border-ink rounded-[10px] px-3.5 py-3 text-center text-xl tracking-[0.5em] font-bold outline-none focus:ring-2 focus:ring-violet-600"
+                placeholder="------"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+              />
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`w-full py-3 text-sm mt-4 ${isLoading ? 'btn-ghost opacity-50 cursor-not-allowed' : 'btn-accent'}`}
+              >
+                {isLoading ? 'Memverifikasi...' : 'Verifikasi OTP'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setIs2FA(false); setOtp(''); setPassword(''); }}
+                className="w-full py-2 text-sm text-ink/60 hover:text-ink underline"
+              >
+                Batal & Kembali ke Login
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {!isLogin && (
+                <>
                   <input
-                    type="checkbox"
-                    className="mt-0.5"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
+                    placeholder="Nama Lengkap"
+                    value={name} onChange={(e) => setName(e.target.value)}
                   />
-                  <span>
-                    Saya setuju dengan{' '}
-                    <Link to="/terms" target="_blank" className="text-violet-600 underline">Syarat & Ketentuan</Link>
-                    {' '}dan{' '}
-                    <Link to="/privacy" target="_blank" className="text-violet-600 underline">Kebijakan Privasi</Link>
-                  </span>
-                </label>
-              </>
-            )}
+                  <input
+                    className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
+                    placeholder="Nomor HP/WhatsApp"
+                    type="tel"
+                    value={phone} onChange={(e) => setPhone(e.target.value)}
+                  />
+                </>
+              )}
+              <input
+                className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
+                placeholder="Email"
+                type="email"
+                value={email} onChange={(e) => setEmail(e.target.value)}
+              />
+              <input
+                className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
+                placeholder="Password"
+                type="password"
+                value={password} onChange={(e) => setPassword(e.target.value)}
+              />
 
-            {isLogin && (
-              <div className="text-right">
-                <Link to="/forgot-password" className="text-xs text-violet-600 hover:underline">
-                  Lupa password?
-                </Link>
-              </div>
-            )}
+              {!isLogin && (
+                <>
+                  <input
+                    className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
+                    placeholder="Konfirmasi Password"
+                    type="password"
+                    value={passwordConfirmation} onChange={(e) => setPasswordConfirmation(e.target.value)}
+                  />
+                  <input
+                    className="w-full border-2 border-ink rounded-[10px] px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-600"
+                    placeholder="Kode Referral (opsional)"
+                    value={referralCode} onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                  />
+                  <label className="flex items-start gap-2 text-xs text-ink/60 pt-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5"
+                      checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                    />
+                    <span>
+                      Saya setuju dengan{' '}
+                      <Link to="/terms" target="_blank" className="text-violet-600 underline">Syarat & Ketentuan</Link>
+                      {' '}dan{' '}
+                      <Link to="/privacy" target="_blank" className="text-violet-600 underline">Kebijakan Privasi</Link>
+                    </span>
+                  </label>
+                </>
+              )}
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`w-full py-3 text-sm mt-2 ${isLoading ? 'btn-ghost opacity-50 cursor-not-allowed' : 'btn-accent'}`}
-            >
-              {isLoading ? 'Memproses...' : (isLogin ? 'Masuk ke Akun' : 'Buat Akun Baru')}
-            </button>
-          </div>
+              {isLogin && (
+                <div className="text-right">
+                  <Link to="/forgot-password" className="text-xs text-violet-600 hover:underline">
+                    Lupa password?
+                  </Link>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`w-full py-3 text-sm mt-2 ${isLoading ? 'btn-ghost opacity-50 cursor-not-allowed' : 'btn-accent'}`}
+              >
+                {isLoading ? 'Memproses...' : (isLogin ? 'Masuk ke Akun' : 'Buat Akun Baru')}
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>
