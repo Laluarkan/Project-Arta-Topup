@@ -131,13 +131,19 @@ class ProcessTopupJob implements ShouldQueue
         }
     }
 
-    /**
+        /**
      * Refund/kredit otomatis saat topup gagal. Logikanya sekarang terpusat di RefundService
      * supaya perilakunya identik dengan webhook Digiflazz dan force-refund oleh admin.
      */
     private function handleFailedRefund($transaction)
     {
         if (!$transaction) return;
-        app(RefundService::class)->handle($transaction);
+
+        // Sama seperti di ReconcileTransactionJob: dipecah ke variabel dulu supaya
+        // Intelephense/VSCode tidak salah tebak method handle() milik kelas lain saat
+        // melacak return type dinamis dari app(). Tidak mengubah perilaku kode.
+        /** @var RefundService $refundService */
+        $refundService = app(RefundService::class);
+        $refundService->handle($transaction);
     }
 }

@@ -128,15 +128,12 @@ class ReconcileTransactionJob implements ShouldQueue
             'status_note' => trim(($transaction->status_note ?? '') . ' [Dikonfirmasi SUKSES via reconciliation setelah request awal timeout.]'),
         ]);
 
-        // fresh() bisa saja return null kalau row-nya somehow sudah tidak ada lagi,
-        // jadi fallback ke $transaction yang sudah ter-update di memori (update() di
-        // atas sudah menyinkronkan atribut lokalnya juga, jadi ini aman & tetap akurat).
-        /** @var Transaction $freshTransaction */
-        $freshTransaction = $transaction->fresh() ?? $transaction;
-
-        $targetEmail = $freshTransaction->guest_email ?? ($freshTransaction->user ? $freshTransaction->user->email : null);
+        // Catatan: TIDAK perlu fresh() di sini. update() di atas sudah menyinkronkan
+        // atribut $transaction di memori (bukan cuma di database), jadi $transaction
+        // di sini sudah pasti mencerminkan status terbaru tanpa perlu query ulang.
+        $targetEmail = $transaction->guest_email ?? ($transaction->user ? $transaction->user->email : null);
         if ($targetEmail) {
-            Mail::to($targetEmail)->queue(new TransactionSuccessMail($freshTransaction));
+            Mail::to($targetEmail)->queue(new TransactionSuccessMail($transaction));
         }
 
         Log::info("ReconcileTransactionJob: TRX {$transaction->trx_id} dikonfirmasi SUKSES via reconciliation. Barang sudah terkirim oleh Digiflazz sebelum koneksi kita putus tadi.");
@@ -149,15 +146,17 @@ class ReconcileTransactionJob implements ShouldQueue
             'status_note' => trim(($transaction->status_note ?? '') . " [Dikonfirmasi GAGAL via reconciliation: {$note}]"),
         ]);
 
-        // fresh() bisa saja return null kalau row-nya somehow sudah tidak ada lagi,
-        // jadi fallback ke $transaction yang sudah ter-update di memori (update() di
-        // atas sudah menyinkronkan atribut lokalnya juga, jadi ini aman & tetap akurat).
-        // Dipecah ke variabel + PHPDoc eksplisit supaya IDE tidak lagi menandai ini
-        // sebagai "Transaction|null" walau secara runtime sudah pasti non-null.
-        /** @var Transaction $freshTransaction */
-        $freshTransaction = $transaction->fresh() ?? $transaction;
-
-        app(RefundService::class)->handle($freshTransaction);
+        // Catatan: TIDAK perlu fresh() di sini juga, dengan alasan yang sama seperti di
+        // finalizeAsSuccess() -> $transaction sudah mencerminkan status FAILED terbaru
+        // begitu update() di atas selesai dipanggil.
+        //
+        // Dipecah jadi 2 baris (bukan langsung app(RefundService::class)->handle(...))
+        // supaya Intelephense/VSCode tidak salah tebak method handle() milik kelas lain
+        // saat mencoba melacak return type dinamis dari app() — murni supaya IDE tidak
+        // menampilkan garis merah palsu, tidak mengubah perilaku kode sama sekali.
+        /** @var RefundService $refundService */
+        $refundService = app(RefundService::class);
+        $refundService->handle($transaction);
 
         Log::info("ReconcileTransactionJob: TRX {$transaction->trx_id} dikonfirmasi GAGAL via reconciliation, refund diproses. Catatan: {$note}");
     }
