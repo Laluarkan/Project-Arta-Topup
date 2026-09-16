@@ -36,8 +36,6 @@ class TransactionController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
-            // Dicatat lengkap di log server supaya penyebab 500 bisa dilihat dari Render logs,
-            // bukan cuma "status 500" tanpa keterangan seperti sebelumnya.
             Log::error('Gagal memuat daftar transaksi admin: ' . $e->getMessage(), [
                 'exception' => $e,
             ]);
@@ -45,7 +43,6 @@ class TransactionController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Gagal memuat daftar transaksi.',
-                // Detail error hanya ditampilkan kalau APP_DEBUG=true (aman untuk admin, tidak untuk publik).
                 'debug' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
@@ -54,24 +51,27 @@ class TransactionController extends Controller
     public function retryTopup(Request $request, $id)
     {
         try {
-            $transaction = Transaction::where('trx_id', $id)->firstOrFail();
+            DB::beginTransaction();
+
+            $transaction = Transaction::where('trx_id', $id)->lockForUpdate()->firstOrFail();
 
             if ($transaction->status === 'SUCCESS') {
+                DB::rollBack();
                 return response()->json(['status' => 'error', 'message' => 'Transaksi sudah sukses, tidak dapat di-retry'], 400);
             }
 
-            // Jika statusnya FAILED, kita kembalikan dulu ke PAID agar Job bisa memprosesnya
             if ($transaction->status === 'FAILED') {
                 $transaction->update(['status' => 'PAID']);
                 
-                // Jika ini adalah transaksi FAILED yang sebelumnya di-refund (Wallet), kita ambil saldonya kembali sebelum proses ulang
                 if ($transaction->payment_method === 'wallet') {
                     $user = User::where('id', $transaction->user_id)->lockForUpdate()->first();
                     if ($user) {
                         if ($user->balance < $transaction->amount) {
                             $transaction->update(['status' => 'FAILED']);
+                            DB::rollBack();
                             return response()->json(['status' => 'error', 'message' => 'Gagal Retry: Saldo user tidak cukup untuk ditarik ulang.'], 400);
                         }
+                        
                         $balanceBefore = $user->balance;
                         $user->balance -= $transaction->amount;
                         $user->save();
@@ -89,7 +89,6 @@ class TransactionController extends Controller
             }
 
             Log::info("Admin melakukan Retry Topup untuk TRX: " . $transaction->trx_id);
-            ProcessTopupJob::dispatch($transaction->trx_id);
 
             AuditLog::create([
                 'user_id' => $request->user()->id,
@@ -97,12 +96,17 @@ class TransactionController extends Controller
                 'target' => 'Mencoba ulang TRX ' . $transaction->trx_id . ' ke Provider'
             ]);
 
+            DB::commit();
+
+            ProcessTopupJob::dispatch($transaction->trx_id);
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Transaksi sedang diproses ulang ke Digiflazz'
             ]);
 
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error("Error Retry Topup: " . $e->getMessage());
             return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan sistem.'], 500);
         }
@@ -121,21 +125,26 @@ class TransactionController extends Controller
         try {
             DB::beginTransaction();
 
-            $transaction = Transaction::where('trx_id', $id)->firstOrFail();
+            $transaction = Transaction::where('trx_id', $id)->lockForUpdate()->firstOrFail();
             
             $oldStatus = $transaction->status;
             $newStatus = $request->status;
 
-            // Jangan update jika statusnya sama
             if ($oldStatus === $newStatus) {
+                DB::rollBack();
                 return response()->json(['status' => 'success', 'message' => 'Status tidak ada perubahan', 'data' => $transaction]);
+            }
+
+            if ($oldStatus === 'FAILED') {
+                DB::rollBack();
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => 'Transaksi yang sudah FAILED (dan direfund) tidak boleh diubah manual. Gunakan fitur Retry untuk memproses ulang dengan menarik saldo.'
+                ], 400);
             }
 
             $transaction->update(['status' => $newStatus]);
 
-            // Refund/kredit otomatis lewat RefundService yang sama dipakai di seluruh sistem
-            // (wallet dikembalikan, midtrans dicoba refund API asli, pakasir & fallback dikreditkan
-            // sebagai Saldo ArTa Zone, guest tanpa akun ditandai untuk refund manual).
             if ($newStatus === 'FAILED') {
                 app(\App\Services\RefundService::class)->handle($transaction);
             }
@@ -157,16 +166,11 @@ class TransactionController extends Controller
             DB::rollBack();
             return response()->json([
                 'status' => 'error',
-                'message' => $e->getMessage()
+                'message' => 'Terjadi kesalahan pada server saat memperbarui status.'
             ], 500);
         }
     }
 
-    /**
-     * Admin klik ini SETELAH benar-benar transfer manual ke rekening/e-wallet guest
-     * di luar sistem (WA konfirmasi, dsb). Ini cuma menandai supaya tidak nyangkut
-     * selamanya di daftar "Perlu Refund Manual" — TIDAK memindahkan uang otomatis.
-     */
     public function markManualRefundDone(Request $request, $id)
     {
         $transaction = Transaction::where('trx_id', $id)->firstOrFail();
