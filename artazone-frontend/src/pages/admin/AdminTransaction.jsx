@@ -18,7 +18,7 @@ export default function AdminTransaction() {
 
   const fetchTransactions = () => {
     const query = filterManualRefund ? '?needs_manual_refund=1' : '';
-    axios.get(`https://artazone-api.onrender.com/api/admin/transactions${query}`, {
+    axios.get(`https://artazone-api-pdid.onrender.com/api/admin/transactions${query}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => {
