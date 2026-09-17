@@ -12,15 +12,6 @@ use Illuminate\Support\Facades\Log;
 
 class RefundService
 {
-    /**
-     * Titik masuk tunggal untuk semua refund transaksi gagal, dipanggil dari:
-     * - ProcessTopupJob (gagal saat pertama kali coba topup)
-     * - DigiflazzWebhookController (gagal dilaporkan belakangan oleh Digiflazz)
-     * - Admin\TransactionController (admin paksa ubah status ke FAILED)
-     *
-     * Supaya perilaku refund SELALU sama persis di mana pun dipanggil, tidak ada lagi
-     * logika refund yang tercecer/berbeda-beda di beberapa file.
-     */
     public function handle(Transaction $transaction): void
     {
         switch ($transaction->payment_method) {
@@ -29,11 +20,10 @@ class RefundService
                 $this->appendNote($transaction, 'Dana otomatis dikembalikan ke Saldo ArTa Zone.');
                 break;
 
+            case 'midtrans': // <-- Perbaikan UTAMA ada di sini
             case 'qris':
             case 'va':
             case 'ewallet':
-                // Ini payment_method yang lewat Midtrans. Coba refund API resmi dulu (real
-                // uang balik ke kartu/e-wallet/bank asal) — tapi tidak semua channel didukung.
                 if ($this->attemptMidtransRefund($transaction)) {
                     $this->appendNote($transaction, 'Uang berhasil di-refund otomatis via Midtrans.');
                 } else {
@@ -42,14 +32,15 @@ class RefundService
                 break;
 
             case 'pakasir':
-                // Pakasir belum menyediakan endpoint refund resmi di integrasi kita saat ini,
-                // jadi langsung fallback ke kredit saldo (atau manual kalau guest).
                 $this->fallbackToWalletOrManual($transaction, 'Pakasir');
                 break;
 
             default:
                 Log::warning("RefundService: payment_method tidak dikenali untuk TRX {$transaction->trx_id}: {$transaction->payment_method}");
-                $this->flagManualRefund($transaction, $transaction->payment_method ?? 'unknown');
+                // Fallback diubah: selama user login/punya akun, tetap jadikan saldo ArTa Zone. 
+                // Hanya jadikan "manual refund" jika dia benar-benar guest.
+                $this->fallbackToWalletOrManual($transaction, $transaction->payment_method ?? 'Unknown Gateway');
+                break;
         }
     }
 
@@ -86,15 +77,11 @@ class RefundService
         }
     }
 
-    /**
-     * Kalau refund API asli tidak berhasil/tidak tersedia: kredit Saldo ArTa Zone (kalau user
-     * punya akun terdaftar), atau tandai untuk refund manual oleh admin (kalau transaksi guest).
-     */
     private function fallbackToWalletOrManual(Transaction $transaction, string $gatewayName): void
     {
         if ($transaction->user_id) {
             $this->creditWallet($transaction, 'refund');
-            $this->appendNote($transaction, "Refund via {$gatewayName} tidak tersedia untuk channel ini — dana Rp" . number_format($transaction->amount, 0, ',', '.') . ' otomatis dikonversi menjadi Saldo ArTa Zone.');
+            $this->appendNote($transaction, "Refund via {$gatewayName} tidak tersedia/ditolak untuk metode bayar ini — dana Rp" . number_format($transaction->amount, 0, ',', '.') . ' otomatis dikonversi menjadi Saldo ArTa Zone.');
         } else {
             $this->flagManualRefund($transaction, $gatewayName);
         }
@@ -131,7 +118,7 @@ class RefundService
     {
         $existing = $transaction->fresh()->status_note;
         $transaction->update([
-            'status_note' => $existing ? ($existing . ' ' . $note) : $note,
+            'status_note' => $existing ? ($existing . ' | ' . $note) : $note,
         ]);
     }
 }
