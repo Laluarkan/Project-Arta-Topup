@@ -13,7 +13,7 @@ export default function StatusPage() {
 
   useEffect(() => {
     const fetchStatus = () => {
-      axios.get(`https://artazone-api.onrender.com/api/transactions/${id}`)
+      axios.get(`https://artazone-api-pdid.onrender.com/api/transactions/${id}`)
         .then(res => {
           setTransaction(res.data.data);
           setIsLoading(false);
