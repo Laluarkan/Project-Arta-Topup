@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://artazone-api.onrender.com/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://artazone-api-pdid.onrender.com/api';
 
 // Dipakai oleh resolveIconUrl.js untuk membangun URL /storage/... (bukan /api/...).
 export const API_ROOT_URL = API_BASE_URL.replace(/\/api\/?$/, '');
